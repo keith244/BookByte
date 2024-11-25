@@ -1,0 +1,115 @@
+{% extends 'book/base.html' %}
+{% load static %}
+{% block content %}
+    <!-- Main Content -->
+    <div class="container my-4">
+        <!-- Stats Section -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="card stat-card shadow-sm bg-primary text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-clock fa-2x mb-2"></i>
+                        <h3 class="card-title">124</h3>
+                        <p class="card-text">Hours Read</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card shadow-sm bg-success text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-book-open fa-2x mb-2"></i>
+                        <h3 class="card-title">3</h3>
+                        <p class="card-text">Currently Reading</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card shadow-sm bg-info text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-check-circle fa-2x mb-2"></i>
+                        <h3 class="card-title">12</h3>
+                        <p class="card-text">Books Completed</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card shadow-sm bg-warning text-white">
+                    <div class="card-body text-center">
+                        <i class="fas fa-plus-circle fa-2x mb-2"></i>
+                        <h3 class="card-title">5</h3>
+                        <p class="card-text">Recently Added</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Continue Reading Section -->
+        <h4 class="mb-4"><i class="fas fa-bookmark me-2"></i>Continue Reading</h4>
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="card stat-card shadow-sm">
+                    <img src="/api/placeholder/400/320" class="book-cover" alt="Book cover">
+                    <div class="card-body">
+                        <h5 class="card-title">The Great Gatsby</h5>
+                        <p class="card-text text-muted">F. Scott Fitzgerald</p>
+                        <div class="progress mb-2">
+                            <div class="progress-bar bg-success" style="width: 75%"></div>
+                        </div>
+                        <small class="text-muted">75% completed</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card stat-card shadow-sm">
+                    <img src="/api/placeholder/400/320" class="book-cover" alt="Book cover">
+                    <div class="card-body">
+                        <h5 class="card-title">1984</h5>
+                        <p class="card-text text-muted">George Orwell</p>
+                        <div class="progress mb-2">
+                            <div class="progress-bar bg-success" style="width: 45%"></div>
+                        </div>
+                        <small class="text-muted">45% completed</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card stat-card shadow-sm">
+                    <img src="/api/placeholder/400/320" class="book-cover" alt="Book cover">
+                    <div class="card-body">
+                        <h5 class="card-title">Dune</h5>
+                        <p class="card-text text-muted">Frank Herbert</p>
+                        <div class="progress mb-2">
+                            <div class="progress-bar bg-success" style="width: 30%"></div>
+                        </div>
+                        <small class="text-muted">30% completed</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recently Added Section -->
+        <h4 class="mb-4"><i class="fas fa-plus-circle me-2"></i>Recently Added</h4>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="card stat-card shadow-sm">
+                    <span class="new-label">New</span>
+                    <img src="/api/placeholder/400/320" class="book-cover" alt="Book cover">
+                    <div class="card-body">
+                        <h5 class="card-title">Project Hail Mary</h5>
+                        <p class="card-text text-muted">Andy Weir</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card shadow-sm">
+                    <span class="new-label">New</span>
+                    <img src="/api/placeholder/400/320" class="book-cover" alt="Book cover">
+                    <div class="card-body">
+                        <h5 class="card-title">The Midnight Library</h5>
+                        <p class="card-text text-muted">Matt Haig</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
