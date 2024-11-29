@@ -3,4 +3,8 @@ from django.urls import path
 
 urlpatterns = [
     path ('', views.index, name='index'),
+    path ('reader/', views.ireader, name='reader'),
+    path ('upload_book/', views.upload_book, name='upload'),
+    path ('delete_book/<int:id>/', views.delete_book, name='delete_book'),
+    path ('read_book/<int:id>/', views.read_book, name='read_book'),
 ]

@@ -1,3 +1,4 @@
 django == 5.0.7
 pillow
 mysql
+pymysql

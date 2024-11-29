@@ -34,18 +34,29 @@
         .progress {
             height: 8px;
         }
+        .card {
+            border-radius: 15px;
+        }
+        .btn-primary {
+            background-color: #0069d9;
+            border-color: #0062cc;
+        }
+        
     </style>
 </head>
 <body class="bg-light">
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="#"><i class="fas fa-book-reader me-2"></i>BookByte</a>
+            <a class="navbar-brand" href="{% url 'index' %}"><i class="fas fa-book-reader me-2"></i>BookByte</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'upload' %}"><i class="fas fa-users me-1"></i>Add book</a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#"><i class="fas fa-users me-1"></i>Book Clubs</a>
                     </li>
@@ -59,11 +70,25 @@
             </div>
         </div>
     </nav>
-
+    {% if messages %}
+    <div>
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <strong>{{ message.tags|capfirst }}!</strong> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
    {% block content %}
+
    {% endblock %}
 
+   {% block extra_js %}
+   
+   {% endblock extra_js %}
+
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script> -->
-    <script src="{% static 'vendor/boostrap/js/boostrap.min.js' %}"></script>
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
 </body>
 </html>
