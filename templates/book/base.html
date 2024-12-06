@@ -58,7 +58,10 @@
                         <a class="nav-link" href="{% url 'upload' %}"><i class="fas fa-users me-1"></i>Add book</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#"><i class="fas fa-users me-1"></i>Book Clubs</a>
+                        <a class="nav-link" href="{% url 'create_book_club' %}"><i class="fas fa-users me-1"></i>Book Clubs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'book_club_list' %}"><i class="fas fa-users me-1"></i>My Book Clubs</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#"><i class="fas fa-chart-line me-1"></i>Statistics</a>
@@ -66,20 +69,41 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#"><i class="fas fa-cog me-1"></i>Settings</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-outline-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right"></i>Logout</a>
+                    </li>
                 </ul>
             </div>
         </div>
     </nav>
     {% if messages %}
-    <div>
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                <strong>{{ message.tags|capfirst }}!</strong> {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    <div class="container">
+        <div class="row">
+            <!-- Left column (col-md-2) for potential spacing or other content -->
+            <div class="col-md-1">
+                <!-- You can leave this empty or add any additional content if needed -->
             </div>
-        {% endfor %}
+
+            <!-- Center column (col-md-8) for displaying messages -->
+            <div class="col-md-10">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        <strong>{{ message.tags|capfirst }}!</strong> {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Right column (col-md-2) for potential spacing or other content -->
+            <div class="col-md-1">
+                <!-- You can leave this empty or add any additional content if needed -->
+            </div>
+        </div>
     </div>
+    
     {% endif %}
+
+    <!-- main content -->
    {% block content %}
 
    {% endblock %}

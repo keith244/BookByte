@@ -7,40 +7,44 @@ import fitz
 from django.conf import settings
 import os, ebooklib
 import base64
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
 # Create your views here.
+User = get_user_model()
 
 def index(request):
     try:
-        books = Book.objects.all()
+        books = Book.objects.filter(user=request.user)
         print(f'Found {books.count()} books')
         return render(request, 'book/index.html',{'books':books})
     except Exception as e:
         print(f'Error:{str(e)}')
         messages.error(request,'Error uploading books')
         return render(request,'book/index.html')
+  
 
-# def book_uploads(request):
-#     books = Book.objects.all()
-#     context = {'books':books}
-#     return render(request, 'book/index.html',context)
 
 def ireader(request):
     return render (request, 'book/reader.html')
 
+@login_required(login_url='login')
 def upload_book(request):
-    try:
-        if request.method == 'POST':
-            form = BookForm(request.POST,request.FILES)
-            if form.is_valid():
-                form.save()
-                messages.success(request,'Book uploaded successfully!')
-                return redirect('index')
-            messages.error(request,f'Form errors:{form.errors}')
-    except Exception as e:
-        messages.error(request, f'Upload error: {str(e)}')
-    form = BookForm()
-    return render(request, 'book/upload.html',{'form' : form, })
+    if request.method == 'POST':
+        form = BookForm(request.POST, request.FILES)
+        if form.is_valid():
+            book = form.save(commit=False)
+            book.user = request.user
+            book.save()
+            messages.success(request, 'Book uploaded successfully!')
+            return redirect('index')
+        messages.error(request, f'Form errors: {form.errors}')
+    else:
+        form = BookForm()
+    return render(request, 'book/upload.html', {'form': form})
 
+
+
+@login_required(login_url='login')
 def delete_book(request,id):
     book = get_object_or_404(Book, id=id)
     try:
@@ -49,6 +53,7 @@ def delete_book(request,id):
     except Exception as e:
         messages.error(request, f'Book not deleted: str{e} ')
     return redirect('index')
+
 
 
 def read_book(request,id):
@@ -78,11 +83,11 @@ def read_book(request,id):
             doc.close()
         
         elif file_ext in ['.epub','.txt']:
-            with open (book.pdf_file.path, 'r',encoding = 'utf-8') as file:
-                context = file.read()
+            with open (book.pdf_file.path, 'r',encoding = 'utf-8', errors = 'replace') as file:
+                file_content = file.read()
             
             context.update ({
-                'file_content': context,
+                'file_content': file_content,
                 'file_type':'text',
             })
         
@@ -92,4 +97,4 @@ def read_book(request,id):
     except Exception as e:
         messages.error(request, f'Error reading file: {str(e)}')
 
-    return render(request, 'book/reader.html', {'book': book})
+    return render(request, 'book/reader.html', context)

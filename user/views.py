@@ -33,7 +33,7 @@ def iregister(request):
         user.set_password(password)
         user.is_active = True
         user.save()
-        messages.success(request, f'Account created successfully!')
+        messages.success(request, f'Account created successfully! You can now login.')
         return redirect('login')
         
     return render (request,'user/register.html',context)
