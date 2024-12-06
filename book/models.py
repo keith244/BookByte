@@ -21,7 +21,6 @@ class Book(models.Model):
     
 class ReadingProgress(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
     book = models.ForeignKey(Book,on_delete=models.CASCADE)
     current_page = models.IntegerField(default=1)
     total_pages = models.IntegerField()
@@ -36,7 +35,6 @@ class ReadingProgress(models.Model):
     
 class Bookmark (models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
     book = models.ForeignKey(Book,on_delete=models.CASCADE)
     page = models.IntegerField()
     note = models.TextField(blank=True)
