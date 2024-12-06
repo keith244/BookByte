@@ -1,0 +1,40 @@
+{% extends 'book/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container mt-5">
+    <h2>Create a New Book Club</h2>
+
+    <!-- Form to create book club -->
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Group Name -->
+        <div class="mb-3">
+            <label for="name" class="form-label">Group Name</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+
+        <!-- Group Description -->
+        <div class="mb-3">
+            <label for="description" class="form-label">Group Description</label>
+            <textarea class="form-control" id="description" name="description"></textarea>
+        </div>
+
+        <!-- Add Members (Optional) -->
+        <div class="mb-3">
+            <label for="members" class="form-label">Add Members</label>
+            <select multiple class="form-control" id="members" name="members">
+                {% for user in users %}
+                    <option value="{{ user.id }}">{{ user.username }}</option>
+                {% endfor %}
+            </select>
+            <small class="form-text text-muted">Hold Ctrl (or Cmd) to select multiple members.</small>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary">Create Book Club</button>
+    </form>
+</div>
+
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends 'book/base.html' %}
+{% load static %}
+{% block content %}
+
+    <!-- Main Content -->
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-dark text-white text-center">
+                        <h4>Upload New Book</h4>
+                    </div>
+                    <div class="card-body">
+                        <form action="" method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Book Title</label>
+                                <input type="text" class="form-control" id="title" name="title" required>
+                                <div class="invalid-feedback">Please enter a title.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="author" class="form-label">Author</label>
+                                <input type="text" class="form-control" id="author" name="author" required>
+                                <div class="invalid-feedback">Please enter an author.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="pdf_file" class="form-label">Choose book image <small class="text-muted" style="font-size: 0.75em;">*optional</small></label>
+                                <input type="file" class="form-control" id="book_cover" name="cover_pic" accept="image/*">
+                                <div class="invalid-feedback">Upload a cover pic for your book</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="pdf_file" class="form-label">Upload PDF/EPUB File</label>
+                                <input type="file" class="form-control" id="pdf_file" name="pdf_file" accept=".pdf,.epub" required>
+                                <div class="invalid-feedback">Please upload a file (PDF or EPUB).</div>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">Upload Book</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

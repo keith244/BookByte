@@ -1,0 +1,376 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookByte Reader - {{ book.title }}</title>
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf_viewer.min.css">
+    <style>
+        :root {
+            --blue-light-filter: 0;
+            --font-size: 16px;
+        }
+        body.dark-mode {
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+        .reader-container {
+            height: calc(100vh - 120px);
+            position: relative;
+            overflow: hidden;
+        }
+        .pdf-content {
+            height: 100%;
+            background: var(--bs-light);
+            filter: sepia(var(--blue-light-filter));
+            overflow: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .dark-mode .pdf-content {
+            background: #2d2d2d;
+        }
+        .top-toolbar, .bottom-toolbar {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .dark-mode .top-toolbar, 
+        .dark-mode .bottom-toolbar {
+            background: rgba(45, 45, 45, 0.95);
+        }
+        .toolbar-btn {
+            padding: 5px 10px;
+            margin: 0 5px;
+            border-radius: 5px;
+            background: none;
+            border: 1px solid #ddd;
+            color: inherit;
+        }
+        .dark-mode .toolbar-btn {
+            border-color: #444;
+        }
+        #pdf-render {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .progress {
+            height: 4px;
+        }
+        .font-size-panel {
+            position: fixed;
+            bottom: 70px;
+            right: 20px;
+            background: var(--bs-light);
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            display: none;
+        }
+        .dark-mode .font-size-panel {
+            background: #2d2d2d;
+        }
+        .font-size-panel.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    {% if messages %}
+    <div>
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <strong>{{ message.tags|capfirst }}!</strong> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Top Toolbar -->
+    <div class="top-toolbar sticky-top">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <button class="toolbar-btn" onclick="history.back()">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h5 class="mb-0 ms-3">{{ book.title }}</h5>
+                <legend class="mb-0 ms-3">{{ book.author }}</legend>
+            </div>
+            <div>
+                <button class="toolbar-btn" id="toc-btn" title="Table of Contents">
+                    <i class="fas fa-list"></i>
+                </button>
+                <button class="toolbar-btn" id="search-btn" title="Search">
+                    <i class="fas fa-search"></i>
+                </button>
+                <button class="toolbar-btn" id="bookmark-btn" title="Add Bookmark">
+                    <i class="fas fa-bookmark"></i>
+                </button>
+                <button class="toolbar-btn" id="font-size-btn" title="Font Size">
+                    <i class="fas fa-text-height"></i>
+                </button>
+                <button class="toolbar-btn" id="dark-mode-btn" title="Dark Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="toolbar-btn" id="blue-light-btn" title="Blue Light Filter">
+                    <i class="fas fa-glasses"></i>
+                </button>
+                <button class="toolbar-btn" id="settings-btn" title="Settings">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reader Content -->
+    <div class="reader-container">
+        <div class="pdf-content">
+            <canvas id="pdf-render"></canvas>
+        </div>
+    </div>
+
+    <!-- Font Size Panel -->
+    <div class="font-size-panel">
+        <div class="d-flex align-items-center">
+            <button class="btn btn-sm btn-outline-secondary me-2" id="decrease-font">-</button>
+            <span id="current-font-size">16px</span>
+            <button class="btn btn-sm btn-outline-secondary ms-2" id="increase-font">+</button>
+        </div>
+    </div>
+
+    <!-- Bottom Toolbar -->
+    <div class="bottom-toolbar fixed-bottom">
+        <div class="container-fluid">
+            <div class="progress mb-2">
+                <div class="progress-bar bg-success" id="reading-progress" style="width: 0%"></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <button class="toolbar-btn" id="prev-page">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span class="mx-3" id="page-info">Page 1 of 1</span>
+                    <button class="toolbar-btn" id="next-page">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div>
+                    <span class="me-3" id="time-left">
+                        <i class="fas fa-clock"></i> -- min left
+                    </span>
+                    <span id="last-read">
+                        <i class="fas fa-book-open"></i> Last read: --
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bookmarks Panel -->
+    <div class="bookmark-panel p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Bookmarks</h5>
+            <button class="toolbar-btn" id="close-bookmarks">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="bookmark-list" id="bookmarks-container">
+            <!-- Bookmarks will be dynamically added here -->
+        </div>
+    </div>
+
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.min.js"></script>
+    <script>
+        // PDF.js setup
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.12.313/pdf.worker.min.js';
+        
+        // Global variables
+        let pdfDoc = null,
+            pageNum = 1,
+            pageIsRendering = false,
+            pageNumIsPending = null;
+
+        let scale = 1.5;
+        const canvas = document.getElementById('pdf-render');
+        const ctx = canvas.getContext('2d');
+
+        // Render the page
+        function renderPage(num) {
+            pageIsRendering = true;
+
+            // Get page
+            pdfDoc.getPage(num).then(page => {
+                // Set viewport scale dynamically
+                const viewport = page.getViewport({ scale }); // Uses the updated scale
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport
+                };
+
+                page.render(renderContext).promise.then(() => {
+                    pageIsRendering = false;
+
+                    // Update page info
+                    document.getElementById('page-info').textContent = `Page ${num} of ${pdfDoc.numPages}`;
+
+                    // Update progress bar
+                    const progress = (num / pdfDoc.numPages) * 100;
+                    document.getElementById('reading-progress').style.width = `${progress}%`;
+
+                    // Check pending page
+                    if (pageNumIsPending !== null) {
+                        renderPage(pageNumIsPending);
+                        pageNumIsPending = null;
+                    }
+                });
+            });
+        }
+
+        // Check for pages to queue rendering
+        function queueRenderPage(num) {
+            if (pageIsRendering) {
+                pageNumIsPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+
+        // Show Prev Page
+        function showPrevPage() {
+            if (pageNum <= 1) return;
+            pageNum--;
+            queueRenderPage(pageNum);
+        }
+
+        // Show Next Page
+        function showNextPage() {
+            if (pageNum >= pdfDoc.numPages) return;
+            pageNum++;
+            queueRenderPage(pageNum);
+        }
+
+        // Load PDF
+        pdfjsLib.getDocument('{{ book.pdf_file.url }}').promise.then(pdfDoc_ => {
+            pdfDoc = pdfDoc_;
+            renderPage(pageNum);
+        });
+
+        // Event Listeners for Page Navigation
+        document.getElementById('prev-page').addEventListener('click', showPrevPage);
+        document.getElementById('next-page').addEventListener('click', showNextPage);
+
+        // Dark Mode Toggle
+        document.getElementById('dark-mode-btn').addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('dark-mode', document.body.classList.contains('dark-mode'));
+        });
+
+        // Blue Light Filter
+        document.getElementById('blue-light-btn').addEventListener('click', () => {
+            const root = document.documentElement;
+            const currentFilter = getComputedStyle(root).getPropertyValue('--blue-light-filter');
+            root.style.setProperty('--blue-light-filter', currentFilter === '0' ? '0.5' : '0');
+        });
+
+        // Font Size Control
+        const fontSizePanel = document.querySelector('.font-size-panel');
+        document.getElementById('font-size-btn').addEventListener('click', () => {
+            fontSizePanel.classList.toggle('active');
+        });
+
+        // document.getElementById('decrease-font').addEventListener('click', () => {
+        //     const root = document.documentElement;
+        //     let currentSize = parseInt(getComputedStyle(root).getPropertyValue('--font-size'));
+        //     if (currentSize > 10) {
+        //         currentSize -= 2;
+        //         root.style.setProperty('--font-size', `${currentSize}px`);
+        //         document.getElementById('current-font-size').textContent = `${currentSize}px`;
+        //     }
+        // });
+        // document.getElementById('increase-font').addEventListener('click', () => {
+        //     const root = document.documentElement;
+        //     let currentSize = parseInt(getComputedStyle(root).getPropertyValue('--font-size'));
+        //     if (currentSize < 30) {
+        //         currentSize += 2;
+        //         root.style.setProperty('--font-size', `${currentSize}px`);
+        //         document.getElementById('current-font-size').textContent = `${currentSize}px`;
+        //     }
+        // });
+        document.getElementById('decrease-font').addEventListener('click', () => {
+            if (scale > 0.5) { // Lower limit for scale
+                scale -= 0.1;
+                // Update displayed font size
+                document.getElementById('current-font-size').textContent = `${(scale * 100).toFixed(0)}%`;
+                renderPage(pageNum); // Re-render the current page with the updated scale
+            }
+        });
+
+        document.getElementById('increase-font').addEventListener('click', () => {
+            if (scale < 3.0) { // Upper limit for scale
+                scale += 0.1;
+                // Update displayed font size
+                document.getElementById('current-font-size').textContent = `${(scale * 100).toFixed(0)}%`;
+                renderPage(pageNum); // Re-render the current page with the updated scale
+            }
+        });
+
+
+        // Bookmarks functionality
+        const bookmarkBtn = document.getElementById('bookmark-btn');
+        const bookmarkPanel = document.querySelector('.bookmark-panel');
+        const closeBookmarksBtn = document.getElementById('close-bookmarks');
+        const bookmarksContainer = document.getElementById('bookmarks-container');
+
+        bookmarkBtn.addEventListener('click', () => {
+            bookmarkPanel.classList.toggle('active');
+        });
+
+        closeBookmarksBtn.addEventListener('click', () => {
+            bookmarkPanel.classList.remove('active');
+        });
+
+        // Placeholder for bookmark functionality
+        function addBookmark() {
+            const bookmark = {
+                page: pageNum,
+                timestamp: new Date().toLocaleString(),
+                note: prompt('Add a note to this bookmark:')
+            };
+
+            let bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+            bookmarks.push(bookmark);
+            localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+
+            renderBookmarks();
+        }
+
+        function renderBookmarks() {
+            const bookmarks = JSON.parse(localStorage.getItem('bookmarks') || '[]');
+            bookmarksContainer.innerHTML = bookmarks.map(bookmark => `
+                <div class="bookmark-item">
+                    <div class="d-flex justify-content-between">
+                        <strong>Page ${bookmark.page}</strong>
+                        <small>${bookmark.timestamp}</small>
+                    </div>
+                    <p class="mb-0 text-muted small">${bookmark.note || 'No note'}</p>
+                </div>
+            `).join('');
+        }
+
+        // Initialize bookmarks
+        renderBookmarks();
+    </script>
+</body>
+</html>
