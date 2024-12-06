@@ -1,7 +1,7 @@
 from django.shortcuts import render,redirect,get_object_or_404
 from django.contrib import messages
 from . forms import BookForm
-from .models import Book
+from .models import Book,ReadingProgress
 from django.contrib import messages
 import fitz
 from django.conf import settings
@@ -9,6 +9,7 @@ import os, ebooklib
 import base64
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
+from django.http import JsonResponse
 # Create your views here.
 User = get_user_model()
 
@@ -98,3 +99,17 @@ def read_book(request,id):
         messages.error(request, f'Error reading file: {str(e)}')
 
     return render(request, 'book/reader.html', context)
+
+@login_required(login_url='login')
+def book_reading_progress(request,id):
+    book = get_object_or_404(Book, id=id)
+    try:
+        if request.user.is_authenticated:
+            current_book = ReadingProgress.objects.filter(book=Book.id, user=request.user)
+
+            if current_book:
+                return JsonResponse({'book':book,'current_page':current_book.current_page},)
+            return JsonResponse({'book':book, 'current_page':1}) 
+    
+    except Exception as e:
+        messages.error(request, f'Error getting reading progress: {str(e)}')
