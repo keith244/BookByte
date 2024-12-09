@@ -60,23 +60,37 @@ def delete_book(request,id):
 def read_book(request,id):
     book = get_object_or_404(Book, id=id)
     file_ext = os.path.splitext(book.pdf_file.path)[1].lower()
-
+    progress, created = ReadingProgress.objects.get_or_create(
+        user=request.user,
+        book=book,
+        defaults={'total_pages': 0}
+    )
     context = {
         'book': book,
+        'current_page': progress.current_page,
+        'completed': progress.completed,
     }
     try:
         if file_ext == '.pdf':
             doc = fitz.open(book.pdf_file.path)
+            total_pages = len(doc)
 
+
+            if progress.total_pages != total_pages:
+                progress.total_pages = total_pages
+                progress.save()
+
+
+            page = doc[progress.current_page - 1]
             #first page
-            page = doc[0]
+            # page = doc[0]
             pix = page.get_pixmap()
             img_data = base64.b64encode(pix.tobytes()).decode('utf-8')
 
             # add pdf specific context
             context.update({
                 'total_pages': len(doc),
-                'current_page': 1,
+                # 'current_page': 1,
                 'page_image':img_data,
                 'file_type':'pdf'
             })
@@ -100,16 +114,21 @@ def read_book(request,id):
 
     return render(request, 'book/reader.html', context)
 
-@login_required(login_url='login')
-def book_reading_progress(request,id):
-    book = get_object_or_404(Book, id=id)
-    try:
-        if request.user.is_authenticated:
-            current_book = ReadingProgress.objects.filter(book=Book.id, user=request.user)
 
-            if current_book:
-                return JsonResponse({'book':book,'current_page':current_book.current_page},)
-            return JsonResponse({'book':book, 'current_page':1}) 
-    
-    except Exception as e:
-        messages.error(request, f'Error getting reading progress: {str(e)}')
+# @login_required(login_url='login')
+def book_reading_progress(request,id):
+
+    if request.method == 'POST':
+
+        # if request.user.is_authenticated:
+        book = get_object_or_404(Book, id=id)
+        current_book = ReadingProgress.objects.get(book=book, user=request.user)            
+        current_page = int(request.POST.get('current_page',current_book.current_page))       
+        current_book.current_page = current_page  
+        current_book.completed = current_page >= current_book.total_pages 
+        print(current_book)
+        current_book.save()
+
+        return JsonResponse({'current_page':current_book.current_page,'success': True })
+        
+    return JsonResponse({'success':False},status=400)

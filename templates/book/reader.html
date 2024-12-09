@@ -195,13 +195,14 @@
         
         // Global variables
         let pdfDoc = null,
-            pageNum = 1,
+            pageNum = parseInt('{{ current_page }}'),
             pageIsRendering = false,
             pageNumIsPending = null;
 
         let scale = 1.5;
         const canvas = document.getElementById('pdf-render');
         const ctx = canvas.getContext('2d');
+        const progressURL = `{% url 'reading_progress' book.id %}`
 
         // Render the page
         function renderPage(num) {
@@ -226,8 +227,10 @@
                     document.getElementById('page-info').textContent = `Page ${num} of ${pdfDoc.numPages}`;
 
                     // Update progress bar
-                    const progress = (num / pdfDoc.numPages) * 100;
-                    document.getElementById('reading-progress').style.width = `${progress}%`;
+                    // const progress = (num / pdfDoc.numPages) * 100;
+                    // document.getElementById('reading-progress').style.width = `${progress}%`;
+
+                    updateProgress(num)
 
                     // Check pending page
                     if (pageNumIsPending !== null) {
@@ -236,6 +239,23 @@
                     }
                 });
             });
+        }
+
+        function updateProgress(currentPage){
+            fetch(progressURL,{
+                method:'POST',
+                headers: {
+                    'Content-Type' : 'application/x-www-form-urlencoded',
+                    'X-CSRFToken':'{{csrf_token}}'
+
+                },body:`current_page = ${currentPage}`
+            }).then (response => response.json())
+
+            .then (data => {
+                if (!data.success){
+                    console.log('Failed to update progress')
+                }
+            })
         }
 
         // Check for pages to queue rendering
