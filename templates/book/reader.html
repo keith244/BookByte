@@ -248,7 +248,7 @@
                     'Content-Type' : 'application/x-www-form-urlencoded',
                     'X-CSRFToken':'{{csrf_token}}'
 
-                },body:`current_page = ${currentPage}`
+                },body:`current_page=${currentPage}`
             }).then (response => response.json())
 
             .then (data => {

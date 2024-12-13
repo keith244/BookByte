@@ -16,17 +16,23 @@ User = get_user_model()
 def index(request):
     try:
         books = Book.objects.filter(user=request.user)
+        continue_reading = ReadingProgress.objects.filter(
+            user = request.user,
+            completed = False,
+        ).select_related('book')
+
         print(f'Found {books.count()} books')
-        return render(request, 'book/index.html',{'books':books})
+        print(f'found {continue_reading.count()} books in progress')
+        return render(request, 'book/index.html',{'books':books,'continue_reading':continue_reading})
     except Exception as e:
         print(f'Error:{str(e)}')
-        messages.error(request,'Error uploading books')
+        messages.error(request,'Error loading books')
         return render(request,'book/index.html')
   
 
 
-def ireader(request):
-    return render (request, 'book/reader.html')
+# def ireader(request):
+#     return render (request, 'book/reader.html')
 
 @login_required(login_url='login')
 def upload_book(request):
@@ -132,3 +138,15 @@ def book_reading_progress(request,id):
         return JsonResponse({'current_page':current_book.current_page,'success': True })
         
     return JsonResponse({'success':False},status=400)
+
+@login_required(login_url='login')
+def continue_reading_book(request):
+    # Get books the user has started but not completed
+    books_in_progress = ReadingProgress.objects.filter(
+        user=request.user, 
+        completed=False
+    ).select_related('book')  # To avoid extra DB hits for books
+
+    books = [progress.book for progress in books_in_progress]  # Extract book objects
+    
+    return render(request, 'book/continue_reading.html', {'books': books})
