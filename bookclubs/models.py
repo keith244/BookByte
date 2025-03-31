@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from book.models import Book 
 # Create your models here.
 User = get_user_model()
 
@@ -11,10 +12,27 @@ class BookClub(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'Name: {self.name}--{self.creator.username}'
+        return f'Name: {self.name} created by {self.creator.username}'
     
     class Meta:
         verbose_name_plural = 'Clubs'
+
+class BookClubBook(models.Model):
+    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    book_club = models.ForeignKey(BookClub, on_delete=models.CASCADE)
+    added_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    added_at = models.DateTimeField(auto_now_add=True)
+    start_date = models.DateField (null = True, blank=True)
+    end_date = models.DateField (null=True, blank=True)
+
+    def __str__(self):
+        return f"""Book Title: {self.book.title}  --- Club Name: {self.book_club.name}."""
+
+    class Meta:
+        unique_together = ['book', 'book_club']
+    
+    
+
 
 class Membership(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

@@ -15,19 +15,39 @@ User = get_user_model()
 
 def index(request):
     try:
-        books = Book.objects.filter(user=request.user)
+        books = Book.objects.filter(user=request.user).exclude(
+            id__in = ReadingProgress.objects.filter(user=request.user).values_list('book_id',flat=True)
+        )
         continue_reading = ReadingProgress.objects.filter(
             user = request.user,
             completed = False,
         ).select_related('book')
 
-        print(f'Found {books.count()} books')
-        print(f'found {continue_reading.count()} books in progress')
-        return render(request, 'book/index.html',{'books':books,'continue_reading':continue_reading})
+        for progress in continue_reading:
+            progress.persent_completed = (
+                (progress.current_page / progress.total_pages) * 100
+                if progress.total_pages else 0
+            )
+        progress_count = ReadingProgress.objects.filter(
+            user = request.user,
+            completed = False
+        ).count()
+
+        return render(request, 'book/index.html',{
+            'books':books,
+            'continue_reading':continue_reading,
+            'progress_count': progress_count,
+            })
+    except Book.DoesNotExist:
+        messages.error(request,'No books found.')
+        return render(request,'book/index.html',{'books':[],'continue_reading':[]})
+    except AttributeError:
+        messages.error(request, 'User authentication required')
+        return render(request, 'book/index.html', {'books': [], 'continue_reading': []})
     except Exception as e:
-        print(f'Error:{str(e)}')
-        messages.error(request,'Error loading books')
-        return render(request,'book/index.html')
+        print(f'Error: {str(e)}')  # For debugging
+        messages.error(request, f'Error: {str(e)}')
+        return render(request, 'book/index.html', {'books': [], 'continue_reading': []})
   
 
 
@@ -66,16 +86,23 @@ def delete_book(request,id):
 def read_book(request,id):
     book = get_object_or_404(Book, id=id)
     file_ext = os.path.splitext(book.pdf_file.path)[1].lower()
+
     progress, created = ReadingProgress.objects.get_or_create(
         user=request.user,
         book=book,
-        defaults={'total_pages': 0}
+        defaults={'current_page':1,'total_pages': 0}
     )
+    # progress_percentage = (progress.current_page / progress.total_pages * 100)
+    if created or not progress.completed:
+        progress.completed = False
+        progress.save()
+
     context = {
         'book': book,
         'current_page': progress.current_page,
         'completed': progress.completed,
     }
+
     try:
         if file_ext == '.pdf':
             doc = fitz.open(book.pdf_file.path)
@@ -95,10 +122,11 @@ def read_book(request,id):
 
             # add pdf specific context
             context.update({
-                'total_pages': len(doc),
+                'total_pages': total_pages,#len(doc),
                 # 'current_page': 1,
                 'page_image':img_data,
-                'file_type':'pdf'
+                'file_type':'pdf',
+                # 'progress_percentage': progress_percentage,
             })
 
             doc.close()
@@ -149,4 +177,4 @@ def continue_reading_book(request):
 
     books = [progress.book for progress in books_in_progress]  # Extract book objects
     
-    return render(request, 'book/continue_reading.html', {'books': books})
+    return render(request, 'book/index.html', {'books': books})

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from . models import Comment,BookClub,Membership
+from . models import Comment,BookClub,Membership,BookClubBook
 from user.models import User
 # Register your models here.
 
@@ -29,4 +29,5 @@ class BookClubAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Comment)
+admin.site.register(BookClubBook)
 # admin.site.register(User,UserModelAdmin)

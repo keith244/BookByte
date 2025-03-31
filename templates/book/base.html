@@ -7,6 +7,7 @@
     <title>BookByte</title>
     <!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"> -->
+    <link rel="shortcut icon" href="{% static 'img/icon.png' %}" type="image/x-icon">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
     <style>
         .stat-card {
@@ -57,7 +58,7 @@
                     {% if user.is_authenticated %}
                     {% if user.is_staff %}
                     <li class="nav-item">
-                        <a class="nav-link btn btn-outline-danger" href="{% url 'admin:index' %}" target="_blank"><i class="bi bi-box-arrow-right"></i>Admin</a>
+                        <a class="nav-link" href="{% url 'admin:index' %}" target="_blank"><i class="bi bi-box-arrow-right"></i>Admin</a>
                     </li>
                     {% endif %}
                     <li class="nav-item">

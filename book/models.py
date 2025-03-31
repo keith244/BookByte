@@ -17,7 +17,11 @@ class Book(models.Model):
 
 
     def __str__(self):
-        return self.title
+        return f'{self.title.upper()} uploaded by {self.user.username}'
+    
+    # class Meta:
+    #     verbose_name_plural = 'Uploaded Books'
+
     
 class ReadingProgress(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,)

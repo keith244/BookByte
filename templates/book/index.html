@@ -1,6 +1,23 @@
 {% extends 'book/base.html' %}
 {% load static %}
 {% block content %}
+<style>
+    .progress-bar-container {
+    width: 100%;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+.progress-bar {
+    height: 20px;
+    background-color: #4CAF50;
+    border-radius: 4px;
+    text-align: center;
+    color: white;
+    transition: width 0.3s ease;
+}
+</style>
     <!-- Main Content -->
     <div class="container my-4">
         <!-- Stats Section -->
@@ -18,7 +35,7 @@
                 <div class="card stat-card shadow-sm bg-success text-white">
                     <div class="card-body text-center">
                         <i class="fas fa-book-open fa-2x mb-2"></i>
-                        <h3 class="card-title">4</h3>
+                        <h3 class="card-title">{{progress_count}}</h3>
                         <p class="card-text">Currently Reading</p>
                     </div>
                 </div>
@@ -46,48 +63,46 @@
         <!-- Continue Reading Section -->
 <h4 class="mb-4"><i class="fas fa-bookmark me-2"></i>Continue Reading</h4>
 <div class="row g-4 mb-5">
+    {% if continue_reading %}
+    {% for progress in continue_reading %}
     <div class="col-md-4">
         <div class="card stat-card shadow-sm">
-            <img src="{% static 'img/default.jpg' %}" class="book-cover" alt="Book cover">
+            {% if progress.book.cover_pic %}
+            <img src="{{ progress.book.cover_pic.url }}" class="book-cover" alt="Book cover">
+            {% else %}
+            <img src="{% static 'img/default.jpg' %}" class="book-cover" alt="">
+            {% endif %}
             <div class="card-body">
-                <h5 class="card-title">The Great Gatsby</h5>
-                <p class="card-text text-muted">F. Scott Fitzgerald</p>
+                <h5 class="card-title">{{progress.book.title}}</h5>
+                <p class="card-text text-muted">{{progress.book.author}}</p>
                 <div class="progress mb-2">
-                    <div class="progress-bar bg-success" style="width: 75%"></div>
+                    <div class="progress-bar bg-success" role="progressbar" 
+                    style="width: {{ progress_percentage }}%"
+                    data-book-id = "{{book.id}}"
+                    data-current-page = "{{current_page}}"
+                    data-total-pages = "{{total_pages}}">
+                    {{progress_percentage|floatformat:1}}
+                    </div>
                 </div>
-                <small class="text-muted">75% completed</small>
+                <small class="text-muted">{{ progress.current_page }} of {{ progress.total_pages }} read</small>
+            </div>
+            
+            <div class="btn-group" role="group" aria-label="Basic mixed styles example">
+                <a href="{% url 'read_book' progress.book.id %}" class="btn btn-outline-success">Read</a>
+                <a href="{% url 'delete_book' progress.book.id %}" type="button" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to delete this book?')">Delete</a>
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card stat-card shadow-sm">
-            <img src="{% static 'img/default.jpg' %}" class="book-cover" alt="Book cover">
-            <div class="card-body">
-                <h5 class="card-title">1984</h5>
-                <p class="card-text text-muted">George Orwell</p>
-                <div class="progress mb-2">
-                    <div class="progress-bar bg-success" style="width: 45%"></div>
-                </div>
-                <small class="text-muted">45% completed</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card stat-card shadow-sm">
-            <img src="{% static 'img/default.jpg' %}" class="book-cover" alt="Book cover">
-            <div class="card-body">
-                <h5 class="card-title">Dune</h5>
-                <p class="card-text text-muted">Frank Herbert</p>
-                <div class="progress mb-2">
-                    <div class="progress-bar bg-success" style="width: 30%"></div>
-                </div>
-                <small class="text-muted">30% completed</small>
-            </div>
-        </div>
+    {% endfor %}
+    {% else %}
+    <p class="text-muted">No books in continue reading</p>
+    {% endif %}
     </div>
 </div>
 
-<div class="row g-4">
+
+<div class="row g-4 mb-5 mx-5">
+    <h4 class="mb-4"><i class="fas fa-bookmark me-2"></i>Latest adds</h4>
     {% for book in books %}
     <div class="col-md-3">
         <div class="card stat-card shadow-sm">
@@ -102,6 +117,7 @@
             <div class="card-body">
                 <h5 class="card-title">{{ book.title }}</h5>
                 <p class="card-text text-muted">{{ book.author }}</p>
+                <p>Uploaded: {{ book.upload_date }}</p>
             </div>
             <div class="btn-group" role="group" aria-label="Basic mixed styles example">
                 <a href="{% url 'read_book' book.id %}" class="btn btn-outline-success">Read</a>
@@ -113,4 +129,19 @@
 </div>
 </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+    function updateProgressBar(currentPage, totalPages) {
+        const percentage = (currentPage / totalPages) * 100;
+        const progressBar = document.querySelector('.progress-bar');
+        progressBar.style.width = percentage + '%';
+        progressBar.textContent = percentage.toFixed(1) + '%';
+    }
+
+    // Update progress when page changes
+    window.addEventListener('pageChange', function(e) {
+        updateProgressBar(e.detail.currentPage, e.detail.totalPages);
+    });
+});
+    </script>
 {% endblock %}
