@@ -47,8 +47,26 @@ def create_book_club(request):
 @login_required(login_url='login')
 def book_club_detail(request,book_club_id):
     bookclub = get_object_or_404(BookClub, id=book_club_id)
-    members = Membership.objects.filter(book_club=bookclub)
-    return render(request, 'bookclubs/book_club_details.html', {'bookclub': bookclub, 'members':members,})
+    members = Membership.objects.filter(book_club=bookclub).select_related('user')
+    
+    is_admin = Membership.objects.filter(
+        user = request.user,
+        book_club = bookclub,
+        role = 'Admin'
+    ).exists()
+
+    club_books = BookClubBook.objects.filter(
+        book_club_id = book_club_id
+    ).select_related('book','added_by')
+
+    context = {
+        'bookclub':bookclub,
+        'members':members,
+        'club_books': club_books,
+        'is_admin':is_admin
+    }
+
+    return render(request, 'bookclubs/book_club_details.html', context)
 
 @login_required(login_url='login')
 def book_club_list(request):
@@ -73,15 +91,6 @@ def add_members(request,book_club_id):
 
     return render(request,'bookclubs/book_club_details.html',{'bookclub':book_club, 'users':available_users})
 
-@login_required(login_url='login')
-def delete_book_club(request,id):
-    bookclub = get_object_or_404(BookClub, id=id)
-    try:
-        bookclub.delete()
-        messages.success(request,'Bookclub deleted successfully')
-    except Exception as e:
-        messages.error(request, f'Bookclub not deleted: str{e} ')
-    return redirect('book_club_list')
 
 
 @login_required(login_url='login')
@@ -95,6 +104,15 @@ def remove_member(request, book_club_id, user_id):
         membership.delete()
     return redirect('book_club_detail', book_club_id=book_club_id)
 
+@login_required(login_url='login')
+def delete_book_club(request,id):
+    bookclub = get_object_or_404(BookClub, id=id)
+    try:
+        bookclub.delete()
+        messages.success(request,'Bookclub deleted successfully')
+    except Exception as e:
+        messages.error(request, f'Bookclub not deleted: str{e} ')
+    return redirect('book_club_list')
 
 @login_required(login_url='login')
 def add_book_to_club (request, book_club_id):
@@ -108,8 +126,8 @@ def add_book_to_club (request, book_club_id):
     if request.method == 'POST':
         title = request.POST.get('title')
         author = request.POST.get('author')
-        pdf_file = request.POST.get('pdf_file')
-        cover_pic = request.POST.get('cover_pic')
+        pdf_file = request.FILES.get('pdf_file')
+        cover_pic = request.FILES.get('cover_pic')
 
         
         try:
@@ -137,6 +155,7 @@ def add_book_to_club (request, book_club_id):
     return render (request, 'bookclubs/add_book_to_club.html',{
         'bookclub': bookclub,
     })
+
 
 @login_required(login_url='login')
 def view_added_books(request, book_club_id = None):

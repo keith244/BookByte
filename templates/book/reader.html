@@ -285,6 +285,7 @@
         pdfjsLib.getDocument('{{ book.pdf_file.url }}').promise.then(pdfDoc_ => {
             pdfDoc = pdfDoc_;
             renderPage(pageNum);
+   
         });
 
         // Event Listeners for Page Navigation

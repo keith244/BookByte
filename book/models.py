@@ -2,13 +2,16 @@ from django.db import models
 import datetime
 from datetime import timedelta
 from django.contrib.auth import get_user_model
+import uuid
 
 # Create your models here.
 
 User = get_user_model()
 
 class Book(models.Model):
-    user = models.ForeignKey(User,on_delete=models.CASCADE,)
+    # uploaded_by = models.ForeignKey(User,on_delete=models.SET_NULL, null=True, blank=True)
+    # user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User,on_delete=models.SET_NULL, null=True, blank=True, default=uuid.UUID('4ea6c39c-036d-46ad-b11c-474a7ea20c7f'))
     title = models.CharField(max_length=200)
     author = models.CharField(max_length=200)
     pdf_file = models.FileField(upload_to='pdfs/')
@@ -17,12 +20,10 @@ class Book(models.Model):
 
 
     def __str__(self):
-        return f'{self.title.upper()} uploaded by {self.user.username}'
-    
+        return f'{self.title.upper()} uploaded by {self.user.username if self.user else "Unknown"}'
     # class Meta:
     #     verbose_name_plural = 'Uploaded Books'
 
-    
 class ReadingProgress(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE,)
     book = models.ForeignKey(Book,on_delete=models.CASCADE)
@@ -46,3 +47,14 @@ class Bookmark (models.Model):
 
     def __str__(self):
         return f'{self.user.username} - {self.book.title} (Page {self.page})'
+    
+
+class ReadingSession(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reading_sessions')
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='book_reading_sessions')  # Changed to Book model
+    pages_read = models.IntegerField()
+    minutes_spent = models.IntegerField()
+    timestamp = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.user.username} read {self.pages_read} pages of {self.book.title} on {self.timestamp}'

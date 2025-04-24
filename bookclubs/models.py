@@ -30,10 +30,7 @@ class BookClubBook(models.Model):
 
     class Meta:
         unique_together = ['book', 'book_club']
-    
-    
-
-
+        
 class Membership(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     book_club = models.ForeignKey(BookClub, on_delete=models.CASCADE)

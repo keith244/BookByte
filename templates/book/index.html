@@ -26,8 +26,8 @@
                 <div class="card stat-card shadow-sm bg-primary text-white">
                     <div class="card-body text-center">
                         <i class="fas fa-clock fa-2x mb-2"></i>
-                        <h3 class="card-title">124</h3>
-                        <p class="card-text">Hours Read</p>
+                        <h3 class="card-title">{{ stats.total_hours }}</h3>
+                        <p class="card-text">Hours Read This Week</p>
                     </div>
                 </div>
             </div>
@@ -58,6 +58,16 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <div class="reading-stats">
+            <h3>Your Reading Stats</h3>
+            <ul>
+                <li>Pages read today: {{ stats.pages_today }}</li>
+                <li>Pages read this week: {{ stats.pages_week }}</li>
+                <li>Last book read: {{ stats.last_book_title }}</li>
+                <li>Total hours read: {{ stats.total_hours }}</li>
+            </ul>
         </div>
 
         <!-- Continue Reading Section -->
