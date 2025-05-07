@@ -1,25 +1,166 @@
 {% extends 'book/base.html' %}
 {% load static %}
 {% block content %}
-    <div class="container mt-5">
-        <h2>{{ book_club.name }}</h2>
-        <p><strong>Description:</strong> {{ book_club.description }}</p>
-        <p><strong>Created by:</strong> {{ book_club.creator.username }}</p>
-
-        <hr>
-
-        <h4>Members</h4>
-        <ul>
-            {% for member in members %}
-                <li>{{ member.user.username }} (Role: {{ member.get_role_display }})</li>
-            {% empty %}
-                <li>No members yet</li>
-            {% endfor %}
-        </ul>
-
-        <hr>
-
-        <a href="#" class="btn btn-warning">Edit Book Club</a>
-        <a href="#" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this book club?')">Delete Book Club</a>
+<div class="container my-4">
+    <!-- Book Club Header Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h2 class="mb-2">{{ bookclub.name }}</h2>
+                    <p class="text-muted mb-1"><i>{{ bookclub.description }}</i></p>
+                    <p class="mb-0"><strong>Created by:</strong> {{ bookclub.creator.username|capfirst }}</p>
+                </div>
+                <a href="{% url 'edit_book_club' bookclub.id %}" class="btn btn-outline-primary">
+                    <i class="fas fa-plus-circle me-1"></i>Edit Club
+                </a>
+            </div>
+        </div>
     </div>
+
+    <!-- Add Members Section -->
+    
+
+    <!-- Club Books Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="fas fa-book me-2"></i>Club Books</h4>
+            {% if is_admin %}
+            <a href="{% url 'add_book_to_club' bookclub.id %}" class="btn btn-outline-primary">
+                <i class="fas fa-plus me-1"></i>Add Book
+            </a>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            {% if club_books %}
+                <div class="row g-4">
+                    {% for club_book in club_books %}
+                    <div class="col-md-3">
+                        <div class="card stat-card shadow-sm h-100">
+                            {% if club_book.book.cover_pic %}
+                            <img src="{{ club_book.book.cover_pic.url }}" class="book-cover" alt="{{ club_book.book.title }}">
+                            {% else %}
+                            <img src="{% static 'img/default.jpg' %}" class="book-cover" alt="{{club_book.book.title}}">
+                            {% endif %}
+
+                            <div class="card-body">
+                                <h5 class="card-title">{{ club_book.book.title }}</h5>
+                                <p class="card-text text-muted">{{ club_book.book.author }}</p>
+                                {% if club_book.start_date %}
+                                <p class="card-text small"><strong>Reading period:</strong> 
+                                    {{ club_book.start_date|date:"M d, Y" }} 
+                                    {% if club_book.end_date %} - {{ club_book.end_date|date:"M d, Y" }}{% endif %}
+                                </p>
+                                {% endif %}
+                                <p class="card-text small text-muted">Added by {{ club_book.added_by.username }}</p>
+                            </div>
+                            <div class="card-footer bg-white border-top-0">
+                                <div class="btn-group w-100" role="group">
+                                    {% if club_book.book.pdf_file %}
+                                    <a href="{% url 'read_book' club_book.book.id %}" class="btn btn-outline-success" target="_blank">
+                                        <i class="fas fa-book-open me-1"></i>Read
+                                    </a>
+                                    {% else %}
+                                    <button class="btn btn-outline-secondary" disabled>No PDF Available</button>
+                                    {% endif %}
+                                    {% if is_admin %}
+                                    <a href="#" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to remove this book?')">
+                                        <i class="fas fa-trash me-1"></i>Remove
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+            {% if request.user.is_authenticated and bookclub.creator == request.user %}
+                <div class="text-center py-4">
+                    <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No books added to this club yet.</p>
+                    <a href="{% url 'add_book_to_club' bookclub.id %}" class="btn btn-outline-primary">
+                        <i class="fas fa-plus me-1"></i>Add Your First Book
+                    </a>
+                </div>
+            {% endif    %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Members Section -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h4 class="mb-0"><i class="fas fa-users me-2"></i>Members</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover" style="border-radius: 15px; overflow: hidden;">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Username</th>
+                            <th>Role</th>
+                            <th>Joined</th>
+                            {% if request.user.is_authenticated and bookclub.creator == request.user %}
+                            <th>Actions</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for member in members %}
+                        <tr>
+                            <td>{{forloop.counter}}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-secondary rounded-circle text-white d-flex align-items-center justify-content-center me-2" 
+                                         style="width: 32px; height: 32px; font-size: 14px;">
+                                        {{ member.user.username|slice:":1"|upper }}
+                                    </div>
+                                    {{ member.user.username }}
+                                </div>
+                            </td>
+                            <td>
+                                {% if member.role == 'Admin' %}
+                                <span class="badge bg-primary">{{ member.get_role_display }}</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ member.get_role_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ member.joined_at|date:"M d, Y" }}</td>
+                            {% if request.user.is_authenticated and bookclub.creator == request.user and member.user != request.user %}
+                            <td>
+                                <a href="{% url 'remove_member' book_club_id=bookclub.id user_id=member.user.id %}" 
+                                   class="btn btn-sm btn-outline-danger" 
+                                   onclick="return confirm('Are you sure you want to remove this member?')">
+                                    <i class="fas fa-user-minus me-1"></i>Remove
+                                </a>
+                            </td>
+                            {% elif request.user.is_authenticated and bookclub.creator == request.user %}
+                            <td>
+                                <span class="badge bg-warning text-dark">Creator</span>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}  
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Actions Section -->
+    {% if request.user.is_authenticated and bookclub.creator == request.user %}
+    <div class="d-flex justify-content-end gap-2 mb-4">
+        <a href="#" class="btn btn-warning">
+            <i class="fas fa-edit me-1"></i>Edit Book Club
+        </a>
+        <a href="{% url 'delete_book_club' bookclub.id %}" 
+           class="btn btn-danger" 
+           onclick="return confirm('Are you sure you want to delete this book club? This action cannot be undone.')">
+            <i class="fas fa-trash-alt me-1"></i>Delete Book Club
+        </a>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

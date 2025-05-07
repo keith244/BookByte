@@ -2,7 +2,10 @@
 {% load static %}
 {% block content %}
     <div class="container my-4">
-        <h2>Your Book Clubs</h2>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Your Book Clubs</h2>
+            <a href="{% url 'create_book_club' %}" class="btn btn-outline-warning">Create book club</a>
+        </div>
         
         {% if book_clubs %}
             <div class="row g-4">
@@ -24,6 +27,7 @@
         {% endif %}
         
         <hr>
+        {% if book_clubs %}
         <h2>You're also a member in:</h2>
         <div class="row g-4">
             {% for book_club in my_book_clubs %}
@@ -39,6 +43,9 @@
                 </div>
             {% endfor %}
         </div>
+        {% else %}
+        <p>You are not a member of any book club</p>
+        {% endif %}
 
     </div>
 {% endblock %}

@@ -54,7 +54,7 @@ def ilogin(request):
 
         if user is not None:
             login(request,user)
-            messages.success(request,f'Welcome,{context['email']}!')
+            messages.success(request,f'Welcome, {context['email']}!')
             return redirect('index')
         else:
             if User.objects.filter(email = context['email']).exists():
