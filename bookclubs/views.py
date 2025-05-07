@@ -136,7 +136,7 @@ def add_book_to_club (request, book_club_id):
                 return redirect('add_book_to_club', book_club_id=book_club_id)
             
             book = Book.objects.create(
-                user = request.user,
+                user = None,
                 title = title,
                 author = author,
                 pdf_file = pdf_file,
@@ -181,3 +181,50 @@ def view_added_books(request, book_club_id = None):
     
     # Return empty response or redirect
     return redirect('book_club_detail', book_club_id=book_club_id) if book_club_id else redirect('index')
+
+
+def read_book_club_book(request, book_club_id,book_id):
+    membership = get_object_or_404(
+        Membership,
+        user = request.user,
+        book_club_id = book_club_id
+    )
+
+    book_club_book = get_object_or_404(
+        BookClubBook,
+        book_id = book_id,
+        book_club_id = book_club_id
+    )
+
+    return redirect ('read_book', id=book_id)
+
+
+# edit club details
+"view to edit basic club details: name and description"
+@login_required(login_url='login')
+def edit_book_club(request, book_club_id):
+    book_club = get_object_or_404(BookClub, id=book_club_id)
+
+    if not Membership.objects.filter(user=request.user, book_club=book_club, role = 'Admin').exists():
+        messages.error(request, 'Only club admins can edit club details')
+        return redirect('book_club_detail', book_club_id=book_club_id)
+    
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+
+        if not name or not description:
+                messages.error(request, 'Name and description must be filled.')
+                return redirect('update_job', book_club_id=book_club_id)
+        try:
+            book_club.name = name
+            book_club.description = description
+            book_club.save()
+
+            messages.success(request, 'Book club details updated successfully!')
+            return redirect('book_club_detail')
+        except Exception as e:
+            messages.error(request,f'Unable to update book club info: {e}')
+            return redirect ('book_club_detail', book_club_id=book_club_id)
+    
+    return render (request, 'bookclubs/edit_book_club.html', {'book_club':book_club})

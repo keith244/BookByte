@@ -11,7 +11,7 @@
                     <p class="text-muted mb-1"><i>{{ bookclub.description }}</i></p>
                     <p class="mb-0"><strong>Created by:</strong> {{ bookclub.creator.username|capfirst }}</p>
                 </div>
-                <a href="#" class="btn btn-outline-primary">
+                <a href="{% url 'edit_book_club' bookclub.id %}" class="btn btn-outline-primary">
                     <i class="fas fa-plus-circle me-1"></i>Edit Club
                 </a>
             </div>
@@ -19,28 +19,7 @@
     </div>
 
     <!-- Add Members Section -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light">
-            <h4 class="mb-0"><i class="fas fa-user-plus me-2"></i>Add Members</h4>
-        </div>
-        <div class="card-body">
-            <form action="{% url 'add_members' book_club_id=bookclub.id %}" method="POST">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label for="members" class="form-label">Select users to add</label>
-                    <select multiple class="form-control" id="members" name="members" style="border-radius: 10px;">
-                        {% for user in available_users %}
-                        <option value="{{user.id}}">{{user.username}}</option>
-                        {% endfor %}
-                    </select>
-                    <small class="form-text text-muted">Hold Ctrl (or Cmd) to select multiple members.</small>
-                </div>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-plus me-1"></i>Add Selected Members
-                </button>
-            </form>
-        </div>
-    </div>
+    
 
     <!-- Club Books Section -->
     <div class="card shadow-sm mb-4">
@@ -78,7 +57,7 @@
                             <div class="card-footer bg-white border-top-0">
                                 <div class="btn-group w-100" role="group">
                                     {% if club_book.book.pdf_file %}
-                                    <a href="{{ club_book.book.pdf_file.url }}" class="btn btn-outline-success" target="_blank">
+                                    <a href="{% url 'read_book' club_book.book.id %}" class="btn btn-outline-success" target="_blank">
                                         <i class="fas fa-book-open me-1"></i>Read
                                     </a>
                                     {% else %}
@@ -96,6 +75,7 @@
                     {% endfor %}
                 </div>
             {% else %}
+            {% if request.user.is_authenticated and bookclub.creator == request.user %}
                 <div class="text-center py-4">
                     <i class="fas fa-book fa-3x text-muted mb-3"></i>
                     <p class="text-muted">No books added to this club yet.</p>
@@ -103,6 +83,7 @@
                         <i class="fas fa-plus me-1"></i>Add Your First Book
                     </a>
                 </div>
+            {% endif    %}
             {% endif %}
         </div>
     </div>
