@@ -75,7 +75,7 @@
 <div class="row g-4 mb-5">
     {% if continue_reading %}
     {% for progress in continue_reading %}
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="card stat-card shadow-sm">
             <a href="{% url 'read_book' progress.book.id %}" class="new-label btn btn-outline-success">Read</a>
             {% if progress.book.cover_pic %}
@@ -101,10 +101,10 @@
     <p class="text-muted">No books in continue reading</p>
     {% endif %}
     </div>
-</div>
+<!-- </div> -->
 
 
-<div class="row g-4 mb-5 mx-5">
+<div class="row g-4 mb-5 ">
     <h4 class="mb-4"><i class="fas fa-bookmark me-2"></i>Latest adds</h4>
     {% for book in books %}
     <div class="col-md-3">
@@ -132,6 +132,9 @@
 </div>
 </div>
     </div>
+    </div>
+   </div>
+ 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
     function updateProgressBar(currentPage, totalPages) {
