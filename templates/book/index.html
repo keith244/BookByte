@@ -77,6 +77,7 @@
     {% for progress in continue_reading %}
     <div class="col-md-4">
         <div class="card stat-card shadow-sm">
+            <a href="{% url 'read_book' progress.book.id %}" class="new-label btn btn-outline-success">Read</a>
             {% if progress.book.cover_pic %}
             <img src="{{ progress.book.cover_pic.url }}" class="book-cover" alt="Book cover">
             {% else %}
@@ -85,15 +86,7 @@
             <div class="card-body">
                 <h5 class="card-title">{{progress.book.title}}</h5>
                 <p class="card-text text-muted">{{progress.book.author}}</p>
-                <div class="progress mb-2">
-                    <div class="progress-bar bg-success" role="progressbar" 
-                    style="width: {{ progress_percentage }}%"
-                    data-book-id = "{{book.id}}"
-                    data-current-page = "{{current_page}}"
-                    data-total-pages = "{{total_pages}}">
-                    {{progress_percentage|floatformat:1}}
-                    </div>
-                </div>
+                
                 <small class="text-muted">{{ progress.current_page }} of {{ progress.total_pages }} read</small>
             </div>
             
@@ -127,7 +120,7 @@
             <div class="card-body">
                 <h5 class="card-title">{{ book.title }}</h5>
                 <p class="card-text text-muted">{{ book.author }}</p>
-                <p>Uploaded: {{ book.upload_date }}</p>
+                <small>Uploaded: <i>{{ book.upload_date }}</i></small>
             </div>
             <div class="btn-group" role="group" aria-label="Basic mixed styles example">
                 <a href="{% url 'read_book' book.id %}" class="btn btn-outline-success">Read</a>

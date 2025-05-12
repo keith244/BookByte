@@ -222,7 +222,7 @@ def edit_book_club(request, book_club_id):
             book_club.save()
 
             messages.success(request, 'Book club details updated successfully!')
-            return redirect('book_club_detail')
+            return redirect('book_club_detail', book_club_id = book_club_id)
         except Exception as e:
             messages.error(request,f'Unable to update book club info: {e}')
             return redirect ('book_club_detail', book_club_id=book_club_id)

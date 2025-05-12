@@ -221,4 +221,3 @@ def save_reading_session(request, id):
             return JsonResponse({'success': True})
         else:
             return JsonResponse({'success': False, 'error': 'Invalid data'}, status = 400)
-        return JsonResponse ({'sucess': False}, status=400)
