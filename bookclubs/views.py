@@ -157,32 +157,6 @@ def add_book_to_club (request, book_club_id):
     })
 
 
-@login_required(login_url='login')
-def view_added_books(request, book_club_id = None):
-    if book_club_id:
-        books = BookClubBook.objects.filter(
-        added_by = request.user,
-        book_club_id = book_club_id,
-    ).select_related('book', 'book_club')
-        print(f'\n--- Books added by {request.user.username} to club ID {book_club_id}---')
-    
-    else:
-        books = BookClubBook.objects.filter(
-            added_by = request.user,
-        ).select_related('book', 'book_club')
-        print(f'\n All books added by {request.user.username}---')
-
-    for book_entry in books:
-        print(f"Title: {book_entry.book.title}")
-        print(f"Author: {book_entry.book.author}")
-        print(f"Club: {book_entry.book_club.name}")
-        print(f"Added on: {book_entry.added_at}")
-        print("-" * 40)
-    
-    # Return empty response or redirect
-    return redirect('book_club_detail', book_club_id=book_club_id) if book_club_id else redirect('index')
-
-
 def read_book_club_book(request, book_club_id,book_id):
     membership = get_object_or_404(
         Membership,

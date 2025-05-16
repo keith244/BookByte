@@ -4,3 +4,6 @@ from . models import Book, Bookmark,ReadingProgress
 admin.site.register(Book)
 admin.site.register(Bookmark)
 admin.site.register(ReadingProgress)
+
+class BookClubBookInline(admin.TabularInline):
+    pass

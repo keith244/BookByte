@@ -12,6 +12,10 @@ from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 import datetime
 from .utils import get_reading_stats
+from django.db.models import Sum
+import json
+
+
 # Create your views here.
 User = get_user_model()
 
@@ -221,3 +225,42 @@ def save_reading_session(request, id):
             return JsonResponse({'success': True})
         else:
             return JsonResponse({'success': False, 'error': 'Invalid data'}, status = 400)
+
+
+"view to display reading stats for user"
+def reading_stats_view(request):
+    """View for displaying reading statistics charts"""
+    import json
+    from django.db.models import Sum
+    
+    stats = get_reading_stats(request.user)
+    
+    # Get data for the weekly chart
+    today = datetime.datetime.now().date()
+    start_of_week = today - datetime.timedelta(days=today.weekday())
+    
+    # Create data for each day of the current week
+    weekly_data = []
+    day_names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    
+    for i in range(7):
+        current_date = start_of_week + datetime.timedelta(days=i)
+        
+        # Get total pages read for this specific day
+        daily_pages = ReadingSession.objects.filter(
+            user=request.user,
+            timestamp=current_date
+        ).aggregate(Sum('pages_read'))['pages_read__sum'] or 0
+        
+        weekly_data.append({
+            'day': day_names[i],
+            'date': current_date.strftime('%Y-%m-%d'),
+            'pages': daily_pages
+        })
+    
+    context = {
+        'stats': stats,
+        'weekly_data': json.dumps(weekly_data),
+    }
+    
+    return render(request, 'book/reading_stats.html', context)

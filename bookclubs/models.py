@@ -15,7 +15,7 @@ class BookClub(models.Model):
         return f'Name: {self.name} created by {self.creator.username}'
     
     class Meta:
-        verbose_name_plural = 'Clubs'
+        verbose_name_plural = 'Book Clubs'
 
 class BookClubBook(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE)

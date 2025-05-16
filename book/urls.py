@@ -10,4 +10,5 @@ urlpatterns = [
     path ('read_book/<int:id>/', views.read_book, name='read_book'),
     path ('book_reading_progress/<int:id>/', views.book_reading_progress, name='reading_progress'),
     # path('',views.continue_reading_book, name='continue_reading_book'),
+    path('reading_stats/', views.reading_stats_view, name='reading_stats'),
 ]
