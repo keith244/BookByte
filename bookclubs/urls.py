@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+import uuid
 
 urlpatterns = [
     path('', views.create_book_club, name='create_book_club'),
@@ -12,5 +13,6 @@ urlpatterns = [
     path('book_club/<int:book_club_id>/read/<int:book_id>/', views.read_book_club_book, name ='read_book_club_book'),
 
     # editing club details
-    path('book_club/<int:book_club_id>/edit_book_club/',views.edit_book_club, name='edit_book_club')
+    path('book_club/<int:book_club_id>/edit_book_club/',views.edit_book_club, name='edit_book_club'),
+    path('book_club/<int:book_club_id>/exit/<uuid:user_id>/', views.exit_book_club, name='exit_book_club'),
 ]

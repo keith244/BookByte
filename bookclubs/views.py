@@ -3,8 +3,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from . models import BookClub,BookClubBook,Membership,Comment
-from book.models import Book
+from book.models import Book,ReadingProgress
 from django.http import HttpResponseForbidden
+from django.db.models import OuterRef, Subquery
 # Create your views here.
 User = get_user_model()
 
@@ -41,6 +42,7 @@ def create_book_club(request):
             messages.error(request, f'All fields must be filled')
     
     users = User.objects.all()
+    
 
     return render(request, 'bookclubs/create_book_club.html', {'users':users})
 
@@ -58,6 +60,14 @@ def book_club_detail(request,book_club_id):
     club_books = BookClubBook.objects.filter(
         book_club_id = book_club_id
     ).select_related('book','added_by')
+
+    # progress_subquery = ReadingProgress.objects.filter(
+    #     user = OuterRef('user'),
+    #     book__in=club_books.values('book')
+    # ).order_by('-last_updated')
+    # members = members.annotate(
+    #     current_page = Subquery(progress_subquery.values('current_page')[:1])
+    # )
 
     context = {
         'bookclub':bookclub,
@@ -82,27 +92,18 @@ def add_members(request,book_club_id):
     if request.method == 'POST' and request.user == book_club.creator:
         member_ids = request.POST.getlist('members')
         for user_id in member_ids:
-            user = User.objects.get(id=user_id)
-            if not book_club.members.filter(id=user.id).exists():
-                Membership.objects.create(user=user,book_club=book_club)
-            return redirect('book_club_detail', book_club_id = book_club_id)
+            try:
+                user = User.objects.get(id=user_id)
+                if not book_club.members.filter(id=user.id).exists():
+                    Membership.objects.create(user=user,book_club=book_club)
+            except User.DoesNotExist:
+                continue
+        messages.success(request,f'Added to group.')
+        return redirect('book_club_detail', book_club_id = book_club_id)
     existing_members = book_club.members.all()
     available_users = User.objects.exclude(id__in=existing_members)
 
-    return render(request,'bookclubs/book_club_details.html',{'bookclub':book_club, 'users':available_users})
-
-
-
-@login_required(login_url='login')
-def remove_member(request, book_club_id, user_id):
-    book_club = get_object_or_404(BookClub, id=book_club_id)
-    if request.user != book_club.creator:
-        return HttpResponseForbidden()
-    
-    membership = get_object_or_404(Membership, book_club=book_club, user_id=user_id)
-    if membership.user != book_club.creator:
-        membership.delete()
-    return redirect('book_club_detail', book_club_id=book_club_id)
+    return render(request,'bookclubs/add_members.html',{'bookclub':book_club, 'users':available_users})
 
 @login_required(login_url='login')
 def delete_book_club(request,id):
@@ -202,3 +203,30 @@ def edit_book_club(request, book_club_id):
             return redirect ('book_club_detail', book_club_id=book_club_id)
     
     return render (request, 'bookclubs/edit_book_club.html', {'book_club':book_club})
+
+
+"view to remove members from a book club"
+@login_required(login_url='login')
+def remove_member(request,book_club_id,user_id):
+    book_club = get_object_or_404(BookClub,id=book_club_id)
+    if request.user != book_club.creator:
+        return HttpResponseForbidden('You cannot perform this action!')
+    membership = get_object_or_404(Membership, book_club=book_club,user_id=user_id)
+    if membership.user != book_club.creator:
+        membership.delete()
+    return redirect('book_club_detail', book_club_id=book_club_id)
+
+
+"view for members to leave a book club"
+@login_required(login_url='login')
+def exit_book_club(request, book_club_id, user_id):
+    book_club = get_object_or_404(BookClub, id=book_club_id)
+    user = get_object_or_404(User, id=user_id)
+    
+    if request.user != user:
+        return HttpResponseForbidden("You can't remove other users!")
+    if request.method == 'POST':
+        book_club.members.remove(user)
+        messages.success(request, 'You have left the book club.')
+        return redirect('book_club_list')
+    return render(request, 'bookclubs/confirm_exit.html', {'book_club':book_club})
