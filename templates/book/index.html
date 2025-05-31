@@ -91,7 +91,7 @@
             </div>
             
             <div class="btn-group" role="group" aria-label="Basic mixed styles example">
-                <a href="{% url 'read_book' progress.book.id %}" class="btn btn-outline-success">Read</a>
+                <a target="_blank" href="{% url 'read_book' progress.book.id %}" class="btn btn-outline-success">Read</a>
                 <a href="{% url 'delete_book' progress.book.id %}" type="button" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to delete this book?')">Delete</a>
             </div>
         </div>

@@ -61,14 +61,6 @@ def book_club_detail(request,book_club_id):
         book_club_id = book_club_id
     ).select_related('book','added_by')
 
-    # progress_subquery = ReadingProgress.objects.filter(
-    #     user = OuterRef('user'),
-    #     book__in=club_books.values('book')
-    # ).order_by('-last_updated')
-    # members = members.annotate(
-    #     current_page = Subquery(progress_subquery.values('current_page')[:1])
-    # )
-
     context = {
         'bookclub':bookclub,
         'members':members,
@@ -216,6 +208,18 @@ def remove_member(request,book_club_id,user_id):
         membership.delete()
     return redirect('book_club_detail', book_club_id=book_club_id)
 
+"view to delete book from club"
+@login_required(login_url='login')
+def delete_club_book(request, book_club_id,user_id,book_id):
+    book_club = get_object_or_404(BookClub,id=book_club_id)
+    if request.user != book_club.creator:
+        return HttpResponseForbidden('You cannot perform this action!')
+    club_book = get_object_or_404(BookClubBook,book_id=book_id, added_by_id=user_id, book_club_id=book_club_id)
+    if request.method == 'POST':
+        club_book.delete()
+        messages.success(request, f'Book removed!')
+        return redirect('book_club_detail', book_club_id=book_club_id)
+    return redirect('book_club_detail', book_club_id=book_club_id)
 
 "view for members to leave a book club"
 @login_required(login_url='login')
