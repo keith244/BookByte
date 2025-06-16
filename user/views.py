@@ -23,7 +23,7 @@ def iregister(request):
         
         if User.objects.filter(email= context['email']).exists():
             messages.error(request, f'Email is already taken. Please use another!')
-            return render(request(request,'users/register.html'))
+            return render(request,'users/register.html')
         
         user = User.objects.create(
             username = context['username'],
@@ -42,7 +42,7 @@ def iregister(request):
 def ilogin(request):
 
     context = {
-        'username': '',
+        'email': '',
     }
     if request.method == 'POST':
         context['email'] = request.POST.get('email')

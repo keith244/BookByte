@@ -27,7 +27,7 @@ class CustomUserManager(BaseUserManager):
 
 class User(AbstractBaseUser,PermissionsMixin):
     id = models.UUIDField(default=uuid.uuid4,primary_key=True,editable=False)
-    username = models.CharField(max_length=255,)
+    username = models.CharField(max_length=255,unique=True)
     email = models.EmailField(unique=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)

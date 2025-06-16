@@ -37,7 +37,7 @@ def create_book_club(request):
                     Membership.objects.create (user=member, book_club=bookclub,role='Member')
                 
             messages.success(request, 'Book club created successfully!')
-            return redirect('book_club_detail',book_club_id = bookclub.id)
+            return redirect('book_club_detail',book_club_id = bookclub.pk)
         except Exception as e:
             messages.error(request, f'All fields must be filled')
     
@@ -50,21 +50,57 @@ def create_book_club(request):
 def book_club_detail(request,book_club_id):
     bookclub = get_object_or_404(BookClub, id=book_club_id)
     members = Membership.objects.filter(book_club=bookclub).select_related('user')
+    club_books = BookClubBook.objects.filter(book_club_id=book_club_id).select_related('book', 'added_by')
     
+    # get progress for each member in the book club
+    # member_progress={}
+    # for member in members:
+    #     progress_list = ReadingProgress.objects.filter(
+    #         user=member.user,
+    #         book__in=[cb.book for cb in club_books],
+    #         book_club = bookclub
+    #     ).select_related('book')
+    #     member_progress[str(member.user.pk)] = {p.book.pk: p for p in progress_list}
+
     is_admin = Membership.objects.filter(
         user = request.user,
         book_club = bookclub,
         role = 'Admin'
     ).exists()
 
-    club_books = BookClubBook.objects.filter(
-        book_club_id = book_club_id
-    ).select_related('book','added_by')
+    print(f'Club books count: {club_books.count()}')
+    print(f'Members count: {members.count()}')
+
+    member_book_progress = []
+    for member in members:
+        print(f'Processing member: {member.user.username} (ID: {member.user.pk})')
+        for club_book in club_books:
+            print(f'Checking book: {club_book.book.title} (ID: {club_book.book.pk})')
+            try:
+                progress = ReadingProgress.objects.get(
+                    user = member.user,
+                    book = club_book.book,
+                    book_club = bookclub
+                )
+                print(f'Found progress: {progress.current_page}/{progress.total_pages}')
+                member_book_progress.append({
+                    'member_id': str(member.user.pk),
+                    'book_id': club_book.book.pk,
+                    'progress':progress
+                })
+            except ReadingProgress.DoesNotExist:
+                print(f'No reading progress found')
+                member_book_progress.append({
+                    'member_id': str(member.user.pk),
+                    'book_id': club_book.book.pk,
+                    'progress': None
+                })
 
     context = {
         'bookclub':bookclub,
         'members':members,
         'club_books': club_books,
+        'member_book_progress': member_book_progress,
         'is_admin':is_admin
     }
 
@@ -86,7 +122,7 @@ def add_members(request,book_club_id):
         for user_id in member_ids:
             try:
                 user = User.objects.get(id=user_id)
-                if not book_club.members.filter(id=user.id).exists():
+                if not book_club.members.filter(id=user.pk).exists():
                     Membership.objects.create(user=user,book_club=book_club)
             except User.DoesNotExist:
                 continue
@@ -234,3 +270,8 @@ def exit_book_club(request, book_club_id, user_id):
         messages.success(request, 'You have left the book club.')
         return redirect('book_club_list')
     return render(request, 'bookclubs/confirm_exit.html', {'book_club':book_club})
+
+"view to get current page of members"
+def get_current_page(request,book_club_id,user_id,book_id):
+    book = get_object_or_404(BookClubBook, id= book_id)
+    club_book = get_object_or_404(BookClubBook, book_id=book_id, user_id=user_id)
