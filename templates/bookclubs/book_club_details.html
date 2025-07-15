@@ -53,14 +53,7 @@
                                 <p class="text-muted small mb-2">Uploaded: <i>{{ club_book.added_at|date:"F j, Y" }}</i></p>
 
                                 <div class="table-responsive small">
-                                    <div class="alert alert-info">
-    <h6>Debug Info:</h6>
-    <p>Current Book ID: {{ club_book.book.pk }}</p>
-    <p>Member Progress Data:</p>
-    {% for mp in member_book_progress %}
-        <small>Member ID: {{ mp.member_id }}, Book ID: {{ mp.book_id }}, Has Progress: {% if mp.progress %}Yes{% else %}No{% endif %}</small><br>
-    {% endfor %}
-</div>
+                                    
                                     <table class="table table-sm table-bordered mb-2">
                                         <thead class="table-dark">
                                             <tr>
