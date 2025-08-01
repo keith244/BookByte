@@ -1,0 +1,10 @@
+{
+    "DATABASES": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "bookbyte",
+        "USER": "bookbyte_user",
+        "PASSWORD": "your_secure_password_here",
+        "HOST": "db",
+        "PORT": "3306"
+    }
+}

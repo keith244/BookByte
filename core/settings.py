@@ -12,14 +12,38 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import json
+import os
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# determine which config file to use
+if os.environ.get('DOCKER_CONTAINER'):
+    config_file = BASE_DIR / 'config-docker.json'
+else:
+    config_file = BASE_DIR / 'config.json'
+
 try:
-    with open(BASE_DIR / 'config.json') as conf_file:
+    with open(config_file) as conf_file:
         config = json.load(conf_file)
 except FileNotFoundError as e:
-    raise FileNotFoundError(f"The configuration file 'config.json' was not found. {e}")
+    # If Docker config doesn't exist, fall back to regular config
+    if config_file.name == 'config-docker.json':
+        try:
+            with open(BASE_DIR / 'config.json') as conf_file:
+                config = json.load(conf_file)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Neither 'config-docker.json' nor 'config.json' was found. {e}")
+    else:
+        raise FileNotFoundError(f"The configuration file '{config_file.name}' was not found. {e}")
+
+
+
+# try:
+#     with open(BASE_DIR / 'config.json') as conf_file:
+#         config = json.load(conf_file)
+# except FileNotFoundError as e:
+#     raise FileNotFoundError(f"The configuration file 'config.json' was not found. {e}")
 
 
 # Quick-start development settings - unsuitable for production
