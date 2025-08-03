@@ -1,3 +1,6 @@
+# BookByte - Copyright (C) 2025 Keith Kk
+# Licensed under GNU GPLv3. See LICENSE for details.
+
 from django.utils import timezone
 from django.db.models import Sum
 from .models import ReadingSession, ReadingProgress

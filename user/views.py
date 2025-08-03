@@ -1,3 +1,6 @@
+# BookByte - Copyright (C) 2025 Keith Kk
+# Licensed under GNU GPLv3. See LICENSE for details.
+
 from django.shortcuts import render,redirect,get_list_or_404
 from django.contrib import messages
 from .models import User, Profile
