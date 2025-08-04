@@ -76,23 +76,23 @@ def book_club_detail(request,book_club_id):
 
     member_book_progress = []
     for member in members:
-        print(f'Processing member: {member.user.username} (ID: {member.user.pk})')
+        # print(f'Processing member: {member.user.username} (ID: {member.user.pk})')
         for club_book in club_books:
-            print(f'Checking book: {club_book.book.title} (ID: {club_book.book.pk})')
+            # print(f'Checking book: {club_book.book.title} (ID: {club_book.book.pk})')
             try:
                 progress = ReadingProgress.objects.get(
                     user = member.user,
                     book = club_book.book,
                     book_club = bookclub
                 )
-                print(f'Found progress: {progress.current_page}/{progress.total_pages}')
+                # print(f'Found progress: {progress.current_page}/{progress.total_pages}')
                 member_book_progress.append({
                     'member_id': str(member.user.pk),
                     'book_id': club_book.book.pk,
                     'progress':progress
                 })
             except ReadingProgress.DoesNotExist:
-                print(f'No reading progress found')
+                # print(f'No reading progress found')
                 member_book_progress.append({
                     'member_id': str(member.user.pk),
                     'book_id': club_book.book.pk,
