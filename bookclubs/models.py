@@ -1,6 +1,10 @@
+# BookByte - Copyright (C) 2025 Keith Kk
+# Licensed under GNU GPLv3. See LICENSE for details.
+
 from django.db import models
 from django.contrib.auth import get_user_model
 from book.models import Book 
+
 # Create your models here.
 User = get_user_model()
 
@@ -15,7 +19,7 @@ class BookClub(models.Model):
         return f'Name: {self.name} created by {self.creator.username}'
     
     class Meta:
-        verbose_name_plural = 'Clubs'
+        verbose_name_plural = 'Book Clubs'
 
 class BookClubBook(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE)

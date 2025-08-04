@@ -47,8 +47,8 @@
                             {% csrf_token %}
                             <div class="mb-3">
                                 <label for="username" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="username" name="email" required>
-                                <div class="invalid-feedback">Please enter your username.</div>
+                                <input type="email" class="form-control" id="username" value="{{email}}" name="email" required>
+                                <div class="invalid-feedback">Please enter your email.</div>
                             </div>
                             <div class="mb-3">
                                 <label for="password" class="form-label">Password</label>

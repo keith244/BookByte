@@ -1,6 +1,6 @@
 from django.contrib import admin
 from . models import Comment,BookClub,Membership,BookClubBook
-from user.models import User
+from django.utils.html import format_html
 # Register your models here.
 
 class UserModelAdmin(admin.ModelAdmin):
@@ -9,7 +9,6 @@ class UserModelAdmin(admin.ModelAdmin):
 
 class MembershipInline(admin.StackedInline):
     model = Membership
-    extra = 1
     # autocomplete_fields = ['user']
     # search_fields = ['user__email', 'user__username']
 

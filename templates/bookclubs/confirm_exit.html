@@ -1,0 +1,26 @@
+{% extends 'book/base.html' %}
+{% load static %}
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white text-center">
+                    <h4>Leave {{ book_club.name }}</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-center mb-4">
+                        Are you sure you want to leave <strong>{{ book_club.name }}</strong>?
+                        You will no longer be able to participate or access its content.
+                    </p>
+                    <form method="POST" class="d-grid gap-2">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">Yes, Leave Club</button>
+                        <a href="{% url 'book_club_detail' book_club.id %}" class="btn btn-secondary">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

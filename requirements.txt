@@ -1,4 +1,5 @@
-django == 5.0.7
-pillow
-mysql
-pymysql
+Django==5.0.7
+ebooklib==0.19
+EbookLib==0.18
+fitz==0.0.1.dev2
+PyMySQL==1.1.1

@@ -1,3 +1,6 @@
+# BookByte - Copyright (C) 2025 Keith Kk
+# Licensed under GNU GPLv3. See LICENSE for details.
+
 from django.shortcuts import render,redirect,get_list_or_404
 from django.contrib import messages
 from .models import User, Profile
@@ -23,7 +26,7 @@ def iregister(request):
         
         if User.objects.filter(email= context['email']).exists():
             messages.error(request, f'Email is already taken. Please use another!')
-            return render(request(request,'users/register.html'))
+            return render(request,'users/register.html')
         
         user = User.objects.create(
             username = context['username'],
@@ -42,7 +45,7 @@ def iregister(request):
 def ilogin(request):
 
     context = {
-        'username': '',
+        'email': '',
     }
     if request.method == 'POST':
         context['email'] = request.POST.get('email')

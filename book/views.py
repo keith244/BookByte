@@ -1,3 +1,6 @@
+# BookByte - Copyright (C) 2025 Keith Kk
+# Licensed under GNU GPLv3. See LICENSE for details.
+
 from django.shortcuts import render,redirect,get_object_or_404
 from django.contrib import messages
 from . forms import BookForm
@@ -12,6 +15,11 @@ from django.contrib.auth import get_user_model
 from django.http import JsonResponse
 import datetime
 from .utils import get_reading_stats
+from django.db.models import Sum
+import json
+from bookclubs.models import BookClub
+
+
 # Create your views here.
 User = get_user_model()
 
@@ -27,7 +35,7 @@ def index(request):
         ).select_related('book')
 
         for progress in continue_reading:
-            progress.persent_completed = (
+            progress.persent_completed = ( # type: ignore
                 (progress.current_page / progress.total_pages) * 100
                 if progress.total_pages else 0
             )
@@ -90,12 +98,46 @@ def delete_book(request,id):
 def read_book(request,id):
     book = get_object_or_404(Book, id=id)
     file_ext = os.path.splitext(book.pdf_file.path)[1].lower()
+    created = False
 
-    progress, created = ReadingProgress.objects.get_or_create(
-        user=request.user,
-        book=book,
-        defaults={'current_page':1,'total_pages': 0}
-    )
+    book_club = None
+    if 'book_club_id' in request.GET:
+        book_club_id = request.GET.get('book_club_id')
+        book_club = get_object_or_404(BookClub, id=book_club_id)
+
+    
+    # Try to get existing progress (individual first, then club)
+    progress = None
+    if book_club:
+        try:
+            progress = ReadingProgress.objects.get(user=request.user, book=book, book_club=book_club)
+        except ReadingProgress.DoesNotExist:
+            # Check if individual progress exists to copy from
+            try:
+                individual_progress = ReadingProgress.objects.get(user=request.user, book=book, book_club=None)
+                progress = ReadingProgress.objects.create(
+                    user=request.user,
+                    book=book,
+                    book_club=book_club,
+                    current_page=individual_progress.current_page,
+                    total_pages=individual_progress.total_pages,
+                    completed=individual_progress.completed
+                )
+            except ReadingProgress.DoesNotExist:
+                progress = ReadingProgress.objects.create(
+                    user=request.user,
+                    book=book,
+                    book_club=book_club,
+                    current_page=1,
+                    total_pages=0
+                )
+    else:
+        progress, created = ReadingProgress.objects.get_or_create(
+            user=request.user,
+            book=book,
+            book_club=None,
+            defaults={'current_page': 1, 'total_pages': 0}
+        )
     # progress_percentage = (progress.current_page / progress.total_pages * 100)
     if created or not progress.completed:
         progress.completed = False
@@ -121,7 +163,7 @@ def read_book(request,id):
             page = doc[progress.current_page - 1]
             #first page
             # page = doc[0]
-            pix = page.get_pixmap()
+            pix = page.get_pixmap() # type: ignore
             img_data = base64.b64encode(pix.tobytes()).decode('utf-8')
 
             # add pdf specific context
@@ -163,7 +205,17 @@ def book_reading_progress(request,id):
 
         # if request.user.is_authenticated:
         book = get_object_or_404(Book, id=id)
-        current_book = ReadingProgress.objects.get(book=book, user=request.user)            
+
+        book_club = None 
+        if 'book_club_id' in request.GET:
+            book_club_id = request.GET.get('book_club_id')
+            book_club = get_object_or_404(BookClub, id=book_club_id)
+
+        current_book = ReadingProgress.objects.get(
+            book=book, 
+            user=request.user,
+            book_club=book_club,
+        )            
         current_page = int(request.POST.get('current_page',current_book.current_page))       
         current_book.current_page = current_page  
         current_book.completed = current_page >= current_book.total_pages 
@@ -190,6 +242,7 @@ def book_reading_progress(request,id):
         
     return JsonResponse({'success':False},status=400)
 
+
 @login_required(login_url='login')
 def continue_reading_book(request):
     # Get books the user has started but not completed
@@ -204,7 +257,7 @@ def continue_reading_book(request):
 
 
 # tracking book reading sessions
-@login_required(login_url = 'login')
+# @login_required(login_url = 'login')
 def save_reading_session(request, id):
     if request.method == 'POST':
         book = get_object_or_404(Book, id=id)
@@ -221,4 +274,42 @@ def save_reading_session(request, id):
             return JsonResponse({'success': True})
         else:
             return JsonResponse({'success': False, 'error': 'Invalid data'}, status = 400)
-        return JsonResponse ({'sucess': False}, status=400)
+
+
+"view to display reading stats for user"
+def reading_stats_view(request):
+    """View for displaying reading statistics charts"""
+    import json
+    from django.db.models import Sum
+    
+    stats = get_reading_stats(request.user)
+    
+    # Get data for the weekly chart
+    today = datetime.datetime.now().date()
+    start_of_week = today - datetime.timedelta(days=today.weekday())
+    
+    # Create data for each day of the current week
+    weekly_data = []
+    day_names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    
+    for i in range(7):
+        current_date = start_of_week + datetime.timedelta(days=i)
+        
+        # Get total pages read for this specific day
+        daily_pages = ReadingSession.objects.filter(
+            user=request.user,
+            timestamp=current_date
+        ).aggregate(Sum('pages_read'))['pages_read__sum'] or 0
+        
+        weekly_data.append({
+            'day': day_names[i],
+            'date': current_date.strftime('%Y-%m-%d'),
+            'pages': daily_pages
+        })
+    
+    context = {
+        'stats': stats,
+        'weekly_data': json.dumps(weekly_data),
+    }
+    
+    return render(request, 'book/reading_stats.html', context)

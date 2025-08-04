@@ -1,6 +1,9 @@
+# BookByte - Copyright (C) 2025 Keith Kk
+# Licensed under GNU GPLv3. See LICENSE for details.
+
 from django.utils import timezone
 from django.db.models import Sum
-from .models import ReadingSession
+from .models import ReadingSession, ReadingProgress
 
 def get_reading_stats(user):
     today = timezone.now().date()
@@ -29,10 +32,16 @@ def get_reading_stats(user):
     ).aggregate(total=Sum('minutes_spent'))['total'] or 0
     
     total_hours = round(total_minutes / 60, 2)
+
+    completed_books_count = ReadingProgress.objects.filter(
+        user=user,
+        completed= True
+    ).count()
     
     return {
         'pages_today': pages_today,
         'pages_week': pages_week,
         'last_book_title': last_book_title,
         'total_hours': total_hours,
+        'completed_books_count':completed_books_count,
     }

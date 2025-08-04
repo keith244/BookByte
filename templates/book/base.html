@@ -9,6 +9,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"> -->
     <link rel="shortcut icon" href="{% static 'img/icon.png' %}" type="image/x-icon">
     <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
+    <!-- <link rel="stylesheet" href="{% static 'custom css/style.css' %}"> -->
     <style>
         .stat-card {
             transition: transform 0.2s;
@@ -18,9 +19,10 @@
             transform: translateY(-5px);
         }
         .book-cover {
-            height: 200px;
+            height: 70px;
+            width: 70px;
             object-fit: cover;
-            border-radius: 10px;
+            border-radius: 50px;
         }
         .new-label {
             position: absolute;
@@ -61,6 +63,11 @@
                         <a class="nav-link" href="{% url 'admin:index' %}" target="_blank"><i class="bi bi-box-arrow-right"></i>Admin</a>
                     </li>
                     {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'reading_stats' %}">
+                            <i class="fas fa-chart-bar me-1"></i>Reading Stats
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'upload' %}"><i class="fas fa-users me-1"></i>Add book</a>
                     </li>

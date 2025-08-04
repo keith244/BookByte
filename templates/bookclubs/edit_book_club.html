@@ -19,10 +19,10 @@
             <textarea class="form-control" id="description" name="description">{{book_club.description}}</textarea>
         </div>
 
-        <button type="submit" class="btn btn-primary">Edit</button>
+        <button type="submit" class="btn btn-primary">Change</button>
 
+        <a href="{% url 'book_club_detail' book_club.id %}" class="btn btn-outline-danger">Go back</a>
 
     </form>
-    <a href="{% url 'book_club_detail' book_club.id %}" class="btn btn-outline-danger">Go back</a>
 </div>
 {% endblock %}

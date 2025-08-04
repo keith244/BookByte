@@ -1,0 +1,38 @@
+{% extends 'book/base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white text-center">
+                    <h4>Add Members to {{ bookclub.name }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="members" class="form-label">Select Users</label>
+                            <select id="members" name="members" class="form-control" multiple required>
+                                {% for user in users %}
+                                    <option value="{{ user.id }}">{{ user.username }}</option>
+                                {% empty %}
+                                    <option disabled>No users available</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Hold Ctrl (Cmd on Mac) to select multiple users.</div>
+                            <div class="invalid-feedback">Please select at least one member.</div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Add Selected Members</button>
+                            <a href="{% url 'book_club_detail' bookclub.id %}" class="btn btn-outline-warning mt-3">Go back</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
