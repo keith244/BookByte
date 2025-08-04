@@ -1,3 +1,6 @@
+# BookByte - Copyright (C) 2025 Keith Kk
+# Licensed under GNU GPLv3. See LICENSE for details.
+
 from django.urls import path
 from . import views
 import uuid

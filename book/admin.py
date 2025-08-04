@@ -1,3 +1,6 @@
+# BookByte - Copyright (C) 2025 Keith Kk
+# Licensed under GNU GPLv3. See LICENSE for details.
+
 from django.contrib import admin
 from . models import Book, Bookmark,ReadingProgress,ReadingSession
 from django.utils.html import format_html
