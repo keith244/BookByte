@@ -11,52 +11,18 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-import json
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# determine which config file to use
-if os.environ.get('DOCKER_CONTAINER'):
-    config_file = BASE_DIR / 'config-docker.json'
-else:
-    config_file = BASE_DIR / 'config.json'
-
-try:
-    with open(config_file) as conf_file:
-        config = json.load(conf_file)
-except FileNotFoundError as e:
-    # If Docker config doesn't exist, fall back to regular config
-    if config_file.name == 'config-docker.json':
-        try:
-            with open(BASE_DIR / 'config.json') as conf_file:
-                config = json.load(conf_file)
-        except FileNotFoundError:
-            raise FileNotFoundError(f"Neither 'config-docker.json' nor 'config.json' was found. {e}")
-    else:
-        raise FileNotFoundError(f"The configuration file '{config_file.name}' was not found. {e}")
-
-
-
-# try:
-#     with open(BASE_DIR / 'config.json') as conf_file:
-#         config = json.load(conf_file)
-# except FileNotFoundError as e:
-#     raise FileNotFoundError(f"The configuration file 'config.json' was not found. {e}")
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = config.get('SECRET_KEY')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'your-fallback-secret-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config.get('DEBUG')
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = config.get('ALLOWED_HOSTS')
-
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost').split(',')
 
 # Application definition
 
@@ -102,22 +68,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'core.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': config['DATABASES']['ENGINE'],
-        'NAME': config['DATABASES']['NAME'],
-        'USER': config ['DATABASES']['USER'],
-        'PASSWORD': config ['DATABASES']['PASSWORD'],
-        'HOST': config ['DATABASES']['HOST'],
-        'PORT': config ['DATABASES']['PORT'],
+        'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.mysql'),
+        'NAME': os.environ.get('DB_NAME', 'booktracker'),
+        'USER': os.environ.get('DB_USER', 'root'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'password'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '3306'),
     }
 }
-
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -137,7 +100,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
@@ -149,7 +111,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
@@ -159,6 +120,7 @@ STATICFILES_DIRS = [
 ]
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+STATIC_ROOT = os.environ.get('STATIC_ROOT', str(BASE_DIR / 'staticfiles'))
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -171,9 +133,11 @@ LOGIN_URL = 'login'
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 HOST_ADDRESS = "127.0.0.1:8000"
-EMAIL_BACKEND = config.get('EMAIL_BACKEND')
-EMAIL_HOST = config.get('EMAIL_HOST')
-EMAIL_USE_TLS = config.get('EMAIL_USE_TLS')
-EMAIL_PORT = config.get('EMAIL_PORT')
-EMAIL_HOST_USER = config.get('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config.get('EMAIL_HOST_PASSWORD')
+
+# Email settings
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')

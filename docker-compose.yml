@@ -3,38 +3,53 @@ version: '3.8'
 services:
   db:
     image: mysql:8.0
-    volumes:
-      - mysql_data:/var/lib/mysql
+    restart: always
     environment:
-      - MYSQL_DATABASE=bookbyte
-      - MYSQL_USER=bookbyte_user
-      - MYSQL_PASSWORD=your_secure_password_here
-      - MYSQL_ROOT_PASSWORD=your_root_password_here
+      MYSQL_DATABASE: bookbyte_db
+      MYSQL_USER: bookbyte_user
+      MYSQL_PASSWORD: bookbyte_password
+      MYSQL_ROOT_PASSWORD: root_password
     ports:
       - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 20s
-      retries: 10
-    command: --default-authentication-plugin=mysql_native_password
+      test: ["CMD-SHELL", "mysql -u root -proot_password -e 'SELECT 1' || exit 1"]
+      timeout: 30s
+      retries: 15
+      interval: 30s
+      start_period: 120s
 
   web:
     build: .
-    command: >
-      sh -c "python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
-    volumes:
-      - .:/app
-      - static_volume:/app/static
+    environment:
+      - SECRET_KEY=TnDgQSj9Ghgaau-KgimlmOFPfqcPDB2n8cHx3wCBESVrhbYhqoxsV-aBRSqmL84XjJRFwd7fjW-IBFBP7LpUZg
+      - DEBUG=True
+      - ALLOWED_HOSTS=127.0.0.1,localhost,0.0.0.0,*
+      - DB_ENGINE=django.db.backends.mysql
+      - DB_NAME=bookbyte_db
+      - DB_USER=bookbyte_user
+      - DB_PASSWORD=bookbyte_password
+      - DB_HOST=db
+      - DB_PORT=3306
+      - EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+      - EMAIL_HOST=smtp.gmail.com
+      - EMAIL_USE_TLS=True
+      - EMAIL_PORT=587
+      - EMAIL_HOST_USER=keithkipngeno@gmail.com
+      - EMAIL_HOST_PASSWORD=
+      - STATIC_ROOT=/app/staticfiles
+    restart: always
     ports:
       - "8000:8000"
-    environment:
-      - DEBUG=1
     depends_on:
       db:
         condition: service_healthy
-    restart: unless-stopped
+    volumes:
+      - .:/app
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"
 
 volumes:
   mysql_data:
-  static_volume:
