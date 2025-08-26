@@ -3,3 +3,5 @@ Django==5.0.7
 ebooklib==0.19
 PyMuPDF>=1.23.0
 mysqlclient>=2.1.0
+Pillow==11.3.0
+cryptography>=3.4.8

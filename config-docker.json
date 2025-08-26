@@ -1,10 +1,20 @@
 {
+    "SECRET_KEY": "TnDgQSj9Ghgaau-KgimlmOFPfqcPDB2n8cHx3wCBESVrhbYhqoxsV-aBRSqmL84XjJRFwd7fjW-IBFBP7LpUZg",
+    "DEBUG": true,
+    "ALLOWED_HOSTS": ["127.0.0.1", "localhost", "0.0.0.0", "*"],
+    "EMAIL_BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+    "EMAIL_HOST": "smtp.gmail.com",
+    "EMAIL_USE_TLS": true,
+    "EMAIL_PORT": 587,
+    "EMAIL_HOST_USER": "keithkipngeno24@gmail.com",
+    "EMAIL_HOST_PASSWORD": "",
     "DATABASES": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": "bookbyte",
+        "NAME": "bookbyte_db",
         "USER": "bookbyte_user",
-        "PASSWORD": "your_secure_password_here",
+        "PASSWORD": "bookbyte_password",
         "HOST": "db",
         "PORT": "3306"
-    }
+    },
+    "STATIC_ROOT": "/app/staticfiles"
 }
