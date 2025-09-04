@@ -6,7 +6,7 @@ from django.contrib import messages
 from . forms import BookForm
 from .models import Book,ReadingProgress, ReadingSession
 from django.contrib import messages
-import fitz
+import pymupdf as fitz
 from django.conf import settings
 import os, ebooklib
 import base64
@@ -23,19 +23,21 @@ from bookclubs.models import BookClub
 # Create your views here.
 User = get_user_model()
 
+@login_required(login_url='login')
 def index(request):
     try:
         stats = get_reading_stats(request.user)
-        books = Book.objects.filter(user =request.user).exclude(
-            id__in = ReadingProgress.objects.filter(user=request.user).values_list('book_id',flat=True)
+        books = Book.objects.filter(user=request.user).exclude(
+            id__in = ReadingProgress.objects.filter(user=request.user,).values_list('book_id',flat=True)
         )
         continue_reading = ReadingProgress.objects.filter(
             user = request.user,
             completed = False,
+            book_club = None,
         ).select_related('book')
 
         for progress in continue_reading:
-            progress.persent_completed = ( # type: ignore
+            progress.persent_completed = (  # type: ignore
                 (progress.current_page / progress.total_pages) * 100
                 if progress.total_pages else 0
             )
@@ -94,7 +96,7 @@ def delete_book(request,id):
     return redirect('index')
 
 
-
+@login_required(login_url='login')
 def read_book(request,id):
     book = get_object_or_404(Book, id=id)
     file_ext = os.path.splitext(book.pdf_file.path)[1].lower()
@@ -138,7 +140,17 @@ def read_book(request,id):
             book_club=None,
             defaults={'current_page': 1, 'total_pages': 0}
         )
-    # progress_percentage = (progress.current_page / progress.total_pages * 100)
+
+    # Always update total_pages for PDFs (moved outside of created check)
+    if file_ext == '.pdf':
+        doc = fitz.open(book.pdf_file.path)
+        total_pages = len(doc)
+        
+        if progress.total_pages != total_pages:
+            progress.total_pages = total_pages
+            progress.save()
+        doc.close()
+
     if created or not progress.completed:
         progress.completed = False
         progress.save()
@@ -152,27 +164,16 @@ def read_book(request,id):
     try:
         if file_ext == '.pdf':
             doc = fitz.open(book.pdf_file.path)
-            total_pages = len(doc)
-
-
-            if progress.total_pages != total_pages:
-                progress.total_pages = total_pages
-                progress.save()
-
-
+            # total_pages already calculated above
             page = doc[progress.current_page - 1]
-            #first page
-            # page = doc[0]
-            pix = page.get_pixmap() # type: ignore
+            pix = page.get_pixmap()
             img_data = base64.b64encode(pix.tobytes()).decode('utf-8')
 
             # add pdf specific context
             context.update({
-                'total_pages': total_pages,#len(doc),
-                # 'current_page': 1,
+                'total_pages': progress.total_pages,
                 'page_image':img_data,
                 'file_type':'pdf',
-                # 'progress_percentage': progress_percentage,
             })
 
             doc.close()
@@ -188,17 +189,16 @@ def read_book(request,id):
         
         else:
             messages.error(request,'Unsupported file type')
-    
+
     except Exception as e:
         messages.error(request, f'Error reading file: {str(e)}')
+    
     request.session['start_page'] = progress.current_page
     request.session['start_time'] = str(datetime.datetime.now().timestamp())
 
-
     return render(request, 'book/reader.html', context)
 
-
-# @login_required(login_url='login')
+@login_required(login_url='login')
 def book_reading_progress(request,id):
 
     if request.method == 'POST':
@@ -257,7 +257,6 @@ def continue_reading_book(request):
 
 
 # tracking book reading sessions
-# @login_required(login_url = 'login')
 def save_reading_session(request, id):
     if request.method == 'POST':
         book = get_object_or_404(Book, id=id)
@@ -277,6 +276,7 @@ def save_reading_session(request, id):
 
 
 "view to display reading stats for user"
+@login_required(login_url='login')
 def reading_stats_view(request):
     """View for displaying reading statistics charts"""
     import json

@@ -14,7 +14,7 @@ User = get_user_model()
 class Book(models.Model):
     # uploaded_by = models.ForeignKey(User,on_delete=models.SET_NULL, null=True, blank=True)
     # user = models.ForeignKey(User, on_delete=models.CASCADE)
-    user = models.ForeignKey(User,on_delete=models.SET_NULL, null=True, blank=True, default=uuid.UUID('9e3e8ec0614c47aba28f6200893d8137')) # type: ignore
+    user = models.ForeignKey(User,on_delete=models.SET_NULL, null=True, blank=True)# default=uuid.UUID('9e3e8ec0614c47aba28f6200893d8137')) # type: ignore
     title = models.CharField(max_length=200)
     author = models.CharField(max_length=200)
     pdf_file = models.FileField(upload_to='pdfs/')
